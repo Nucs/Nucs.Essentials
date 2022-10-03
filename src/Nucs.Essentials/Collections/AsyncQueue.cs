@@ -1,11 +1,12 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Nucs.Collections.Structs;
 
 namespace Nucs.Collections {
-    public class AsyncQueue<T> {
+    public class AsyncQueue<T> : IDisposable {
         private StructQueue<T> Queue;
         public readonly object QueueLock = new object();
         public readonly SemaphoreSlim Signal = new SemaphoreSlim(initialCount: 0, maxCount: int.MaxValue);
@@ -129,8 +130,11 @@ namespace Nucs.Collections {
         }
 
         public void Clear() {
-            lock (QueueLock)
+            lock (QueueLock) {
                 Queue.Clear();
+                while (Signal.CurrentCount > 0)
+                    Signal.Wait(0);
+            }
         }
 
         public int Count {
@@ -148,6 +152,11 @@ namespace Nucs.Collections {
         public void Trim() {
             lock (QueueLock)
                 Queue.TrimExcess();
+        }
+
+        public void Dispose() {
+            Queue.Dispose();
+            Signal.Dispose();
         }
     }
 }

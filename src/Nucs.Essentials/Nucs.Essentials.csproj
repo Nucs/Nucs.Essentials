@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Nucs</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <PackageId>Nucs.Essentials</PackageId>
+    <Authors>Eli Belash / Nucs</Authors>
+    <Company>Nucs</Company>
+    <Product>Nucs.Essentials</Product>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Title>Nucs.Essentials</Title>
+    <Description>A composition of async tools, collections and struct-collections. Performance is key.</Description>
+    <Copyright>Eli Belash / Nucs</Copyright>
+    <PackageLicenseUrl>https://choosealicense.com/licenses/mit/</PackageLicenseUrl>
+    <PackageTags>Collections,async,struct</PackageTags>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="C5" Version="2.5.3" />
+    <PackageReference Include="Enums.NET" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.17" />
+  </ItemGroup>
+
+</Project>

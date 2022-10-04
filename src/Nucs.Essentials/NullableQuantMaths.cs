@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using Nucs.Exceptions;
 
 namespace Nucs {
-    public static class MathExtensions {
+    public static class QuantMathExtensions {
         /// <param name="decimals">How many digits after decimal point to round, passing 2 with <paramref name="price"/> of 11.3244 will round to 11.32</param>
         /// <param name="floor">Will floor <paramref name="decimals"/> decimal point, otherwise will round it to nearest</param>
         /// <returns>The rounded price</returns>
@@ -29,7 +29,7 @@ namespace Nucs {
         }
     }
 
-    public static class NullableMaths {
+    public static class NullableQuantMaths {
         #region Regular
 
         /// <summary>

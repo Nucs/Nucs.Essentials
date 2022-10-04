@@ -19,6 +19,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/Nucs/Nucs.Essentials</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Nucs/Nucs.Essentials</RepositoryUrl>
+    <PackageVersion>1.0.1</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

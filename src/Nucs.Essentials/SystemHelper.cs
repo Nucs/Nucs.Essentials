@@ -11,13 +11,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Nucs.Exceptions;
 
 namespace Nucs {
     public static class SystemHelper {
-        public const string ConfigFileExt = ".xml";
-        public const string FrameworkSettingsFile = "..\\Config\\FrameworkSettings.xml";
-
         public const float memory = 1024f;
 
         public const  uint million = 1000000;
@@ -25,14 +23,17 @@ namespace Nucs {
         public const uint thousands = 100000;
         public static Logger Logger { get; private set; }
 
+        static SystemHelper() {
+            Logger = new Logger(NullLoggerFactory.Instance.CreateLogger(string.Empty));
+        }
+
         public static void SetupLogger(ILogger logger) {
             Logger = new Logger(logger);
         }
-        
+
         public static void SetupLogger(Logger logger) {
             Logger = logger;
         }
-        
 
         public static HashSet<string> GetSymbolsFromFile(string file) {
             var symbols = File.ReadAllText(file)

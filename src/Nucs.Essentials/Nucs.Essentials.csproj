@@ -15,8 +15,10 @@
     <Description>A composition of async tools, collections and struct-collections. Performance is key.</Description>
     <Copyright>Eli Belash / Nucs</Copyright>
     <PackageLicenseUrl>https://choosealicense.com/licenses/mit/</PackageLicenseUrl>
-    <PackageTags>Collections,async,struct</PackageTags>
+    <PackageTags>Collections,async,struct,nucs,elibelash</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/Nucs/Nucs.Essentials</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Nucs/Nucs.Essentials</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

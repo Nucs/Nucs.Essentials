@@ -27,6 +27,7 @@ namespace Nucs.Threading {
     /// <summary>
     ///     Represents an async (via Task{T}) procedure that has to happen every N time, can fail and can retry.
     ///     A procedure can be long-running or just a piece of code that has to complete successfuly (thus retry).
+    ///     Providing awaiting of the procedure completion and returning the result. Will keep awaiting until procedure completes successfully regardless to number of retries.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public sealed class AsyncProcedure<T> : IDisposable {
@@ -63,22 +64,22 @@ namespace Nucs.Threading {
             var toComplete = _completionSource;
             if (State != ProcedureState.Uninitialized || toComplete.Task.IsCompleted) {
                 State = ProcedureState.Uninitialized;
-                if (!toComplete.Task.IsCompleted) {
-                    _completionSource = new TaskCompletionSource<T>();
+                _completionSource = new TaskCompletionSource<T>();
+                if (!toComplete.Task.IsCompleted) 
                     toComplete.TrySetCanceled();
-                } else {
-                    State = ProcedureState.Uninitialized;
-                    _completionSource = new TaskCompletionSource<T>();
-                }
             }
         }
 
+        /// <summary>
+        ///     Starts the procedure. If the procedure has failed/completed then it resets the state and starts again.
+        /// </summary>
         public void RunProcedure() {
-            _retrySignal.ReleaseTo(_allowedAttempts);
-
+            //swap the state to a new one
             if (State is ProcedureState.Completed or ProcedureState.Failed) {
                 ResetState();
             }
+
+            _retrySignal.ReleaseTo(_allowedAttempts);
 
             _coreRunner ??= Task.Run(ProcedureRunner, CancellationToken);
         }
@@ -116,7 +117,7 @@ namespace Nucs.Threading {
         }
 
         /// <summary>
-        ///     Returns a Task that awaits this procedure completion.
+        ///     Returns a Task that awaits this procedure completion. Regardless to the number of retries.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
@@ -135,8 +136,12 @@ namespace Nucs.Threading {
                     throw new ArgumentOutOfRangeException();
             }
         }
-
-        public async ValueTask<T> Await() {
+        
+        /// <summary>
+        ///     Await the procedure completion and return the result. Will keep awaiting until procedure completes successfully regardless to number of retries.
+        /// </summary>
+        /// <returns>The result passed to the completed procedure.</returns>
+        public async ValueTask<T> AwaitValueTask() {
             if (_completionSource.Task.IsCompletedSuccessfully)
                 return _completionSource.Task.GetAwaiter().GetResult(); //unbox
 
@@ -156,6 +161,10 @@ namespace Nucs.Threading {
             return res;
         }
 
+        /// <summary>
+        ///     Await the procedure completion and return the result. Will keep awaiting until procedure completes successfully regardless to number of retries.
+        /// </summary>
+        /// <returns>The result passed to the completed procedure.</returns>
         public async Task<T> AwaitTask() {
             if (_completionSource.Task.IsCompletedSuccessfully)
                 return _completionSource.Task.GetAwaiter().GetResult(); //unbox

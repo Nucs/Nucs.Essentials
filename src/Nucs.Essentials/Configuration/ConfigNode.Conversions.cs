@@ -64,7 +64,7 @@ namespace Nucs.Configuration {
             if (string.IsNullOrEmpty(Value))
                 return new List<T>(0);
             var line = new LineReader(Value);
-            var result = new List<T>(line.CountItems());
+            var result = new List<T>(line.CountItems(','));
             var converter = (ConverterDelegate<T>) ConfigParsers.Converters[typeof(T)];
             while (line.HasNext)
                 result.Add(converter(line.Next()));
@@ -75,7 +75,7 @@ namespace Nucs.Configuration {
             if (string.IsNullOrEmpty(Value))
                 return Array.Empty<T>();
             var line = new LineReader(Value);
-            var result = new T[line.CountItems()];
+            var result = new T[line.CountItems(',')];
             var converter = (ConverterDelegate<T>) ConfigParsers.Converters[typeof(T)];
             for (int i = 0; line.HasNext; i++) {
                 result[i] = converter(line.Next());
@@ -123,7 +123,7 @@ namespace Nucs.Configuration {
             if (string.IsNullOrEmpty(Value))
                 return (IList) Activator.CreateInstance(typeof(List<>).MakeGenericType(underlyingType))!;
             var line = new LineReader(Value);
-            IList list = (IList) Activator.CreateInstance(typeof(List<>).MakeGenericType(underlyingType), new object[] {line.CountItems()})!;
+            IList list = (IList) Activator.CreateInstance(typeof(List<>).MakeGenericType(underlyingType), new object[] {line.CountItems(',')})!;
             if (underlyingType.IsEnum) {
                 while (line.HasNext)
                     list.Add(Enums.Parse(underlyingType, line.Next()));
@@ -140,7 +140,7 @@ namespace Nucs.Configuration {
             if (string.IsNullOrEmpty(Value))
                 return Array.CreateInstance(underlyingType, 0);
             var line = new LineReader(Value);
-            var result = Array.CreateInstance(underlyingType, line.CountItems());
+            var result = Array.CreateInstance(underlyingType, line.CountItems(','));
             var converter = ConfigParsers.BoxedConverters[underlyingType];
             if (underlyingType.IsEnum) {
                 for (int i = 0; line.HasNext; i++) {

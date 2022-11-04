@@ -117,7 +117,7 @@ namespace Nucs.Configuration {
             if (Value.IsEmpty)
                 return new List<T>(0);
             var line = new LineReader(Value);
-            var result = new List<T>(line.CountItems());
+            var result = new List<T>(line.CountItems(','));
             var converter = (ConverterDelegate<T>) ConfigParsers.Converters[typeof(T)];
             while (line.HasNext)
                 result.Add(converter(line.Next()));
@@ -128,7 +128,7 @@ namespace Nucs.Configuration {
             if (Value.IsEmpty)
                 return Array.Empty<T>();
             var line = new LineReader(Value);
-            var result = new T[line.CountItems()];
+            var result = new T[line.CountItems(',')];
             var converter = (ConverterDelegate<T>) ConfigParsers.Converters[typeof(T)];
             for (int i = 0; line.HasNext; i++) {
                 result[i] = converter(line.Next());

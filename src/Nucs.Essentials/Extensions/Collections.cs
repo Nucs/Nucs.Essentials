@@ -40,13 +40,40 @@ namespace Nucs.Extensions {
                 Buffer.MemoryCopy(
                     source: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(src)),
                     destination: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(dst)),
-                    destinationSizeInBytes: newSize, 
+                    destinationSizeInBytes: newSize,
                     sourceBytesToCopy: Math.Min(src.LongLength, newSize));
-                
+
                 array = dst;
             }
 
             Debug.Assert(array != null);
+        }
+
+        public static unsafe void ResizeMarshalled(ref byte* buffer, long bufferSize, long newSize, bool releasePreviousBuffer) {
+            if (newSize < 0)
+                throw new ArgumentOutOfRangeException(nameof(newSize));
+
+            byte* src = buffer; // local copy
+            if (bufferSize != newSize) {
+                // Due to array variance, it's possible that the incoming array is
+                // actually of type U[], where U:T; or that an int[] <-> uint[] or
+                // similar cast has occurred. In any case, since it's always legal
+                // to reinterpret U as T in this scenario (but not necessarily the
+                // other way around), we can use Buffer.Memmove here.
+
+                byte* dst = (byte*) Marshal.AllocHGlobal(new IntPtr(newSize));
+                Buffer.MemoryCopy(
+                    source: src,
+                    destination: dst,
+                    destinationSizeInBytes: newSize,
+                    sourceBytesToCopy: Math.Min(bufferSize, newSize));
+
+                buffer = dst;
+                if (releasePreviousBuffer)
+                    Marshal.FreeHGlobal(new IntPtr(src));
+            }
+
+            Debug.Assert(buffer != null);
         }
 
         /// <summary>

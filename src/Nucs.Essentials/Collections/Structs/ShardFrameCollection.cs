@@ -8,8 +8,8 @@ using Nucs.Exceptions;
 
 namespace Nucs.Collections.Structs;
 
-public delegate void FrameVisitor(int frameIndex, LongSpan<byte> frame);
-public delegate void FrameVisitor<in TState>(int frameIndex, TState state, LongSpan<byte> frame);
+public delegate void FrameVisitor(int frameIndex, ByteBuffer frame);
+public delegate void FrameVisitor<in TState>(int frameIndex, TState state, ByteBuffer frame);
 
 /// <summary>
 ///     Stores a collection of frames atwhich each frame can be sized differently. The distance is delimited by a bucket object keeping track of the offset every bucketSize parameter.
@@ -18,18 +18,20 @@ public delegate void FrameVisitor<in TState>(int frameIndex, TState state, LongS
 public class ShardFrameCollection : IDisposable {
     protected int _length;
     public int Count => _length;
-    public byte[] Buffer;
+    public unsafe byte* Buffer;
+    public readonly long BufferSize;
     protected readonly int _bucketSize;
     protected readonly bool _supportBufferExpansion;
     protected readonly float _bufferExpansionFactor;
     public long DataEndOffset;
     public StructList<BucketIndex> Buckets;
 
-    public ShardFrameCollection(byte[] buffer, int bucketSize, bool supportBufferExpansion = false, float bufferExpansionFactor = 1.5f) {
-        if (buffer.Length < DataEndOffset)
-            throw new ArgumentException("Value cannot be an empty collection.", nameof(buffer));
+    public unsafe ShardFrameCollection(long bufferSize, int bucketSize, bool supportBufferExpansion = false, float bufferExpansionFactor = 1.5f) {
+        if (bufferSize < DataEndOffset)
+            throw new ArgumentException("Value cannot be an empty collection.", nameof(bufferSize));
 
-        Buffer = buffer;
+        Buffer = (byte*) Marshal.AllocHGlobal(new IntPtr(bufferSize));
+        BufferSize = bufferSize;
         _bucketSize = bucketSize;
         _supportBufferExpansion = supportBufferExpansion;
         _bufferExpansionFactor = bufferExpansionFactor;
@@ -49,13 +51,12 @@ public class ShardFrameCollection : IDisposable {
         int frameSize = sizeof(int) + data.Length;
         EnsureCapacity(bucket.EndOffset + frameSize);
 
-        fixed (byte* destBuffer = Buffer)
         fixed (byte* source = data) {
-            int* dest = (int*) (destBuffer + bucket.EndOffset);
+            int* dest = (int*) (Buffer + bucket.EndOffset);
             *dest = data.Length;
 
             System.Buffer.MemoryCopy(source: source, destination: &dest[1],
-                                     destinationSizeInBytes: Buffer.LongLength - bucket.EndOffset,
+                                     destinationSizeInBytes: BufferSize - bucket.EndOffset,
                                      sourceBytesToCopy: data.Length);
         }
 
@@ -65,12 +66,12 @@ public class ShardFrameCollection : IDisposable {
         return bucket;
     }
 
-    protected void EnsureCapacity(long expectedSize) {
-        if (expectedSize <= Buffer.LongLength) return;
+    protected unsafe void EnsureCapacity(long expectedSize) {
+        if (expectedSize <= BufferSize) return;
         if (!_supportBufferExpansion)
             throw new OutOfMemoryException("Buffer is full");
 
-        long newLen = Buffer.LongLength;
+        long newLen = BufferSize;
         do {
             var len = (long) Math.Ceiling(newLen * _bufferExpansionFactor);
             if (len == newLen) //failsafe
@@ -78,48 +79,46 @@ public class ShardFrameCollection : IDisposable {
             newLen = len;
         } while (expectedSize > newLen);
 
-        Nucs.Extensions.Collections.Resize(ref Buffer, newLen);
+        Nucs.Extensions.Collections.ResizeMarshalled(ref Buffer, BufferSize, newLen, true);
     }
 
-    public unsafe LongSpan<byte> this[int frameIndex] {
+    public unsafe ByteBuffer this[long frameIndex] {
         get {
             if (frameIndex < 0 || frameIndex >= _length)
                 throw new IndexOutOfRangeException();
 
-            fixed (byte* buffer = Buffer) {
-                long offset = Buckets[frameIndex / _bucketSize].Offset;
-                var jumps = frameIndex % _bucketSize;
-                for (int i = 0; i < jumps; i++) {
-                    offset += sizeof(int) + *((int*) (buffer + offset));
-                }
-
-                //target is frame at offset
-                var frameLength = *((int*) (buffer + offset));
-                return new LongSpan<byte>(Buffer, offset + sizeof(int), frameLength);
-            }
-        }
-    }
-
-    public unsafe void Iterate(int startIndex, int endIndex, FrameVisitor visitor) {
-        if (startIndex < 0 || startIndex + endIndex > _length)
-            throw new IndexOutOfRangeException();
-
-        fixed (byte* buffer = Buffer) {
-            //skip to needed offset
-            long offset = Buckets[startIndex / _bucketSize].Offset;
-            var jumps = startIndex % _bucketSize;
+            byte* buffer = Buffer;
+            long offset = Buckets[frameIndex / _bucketSize].Offset;
+            var jumps = frameIndex % _bucketSize;
             for (int i = 0; i < jumps; i++) {
                 offset += sizeof(int) + *((int*) (buffer + offset));
             }
 
-            //iterate
-            int step;
-            var steps = endIndex - startIndex;
-            for (step = 0; step < steps; step++) {
-                //target is frame at offset
-                visitor(step, new LongSpan<byte>(Buffer, offset + sizeof(int), /*frameSize: */ *((int*) (buffer + offset))));
-                offset += sizeof(int) + *((int*) (buffer + offset));
-            }
+            //target is frame at offset
+            var frameLength = *((int*) (buffer + offset));
+            return new ByteBuffer(Buffer, BufferSize, offset + sizeof(int), frameLength);
+        }
+    }
+
+    public unsafe void Iterate(long startIndex, long endIndex, FrameVisitor visitor) {
+        if (startIndex < 0 || startIndex + endIndex > _length)
+            throw new IndexOutOfRangeException();
+
+        var buffer = Buffer;
+        //skip to needed offset
+        long offset = Buckets[startIndex / _bucketSize].Offset;
+        var jumps = startIndex % _bucketSize;
+        for (long i = 0; i < jumps; i++) {
+            offset += sizeof(int) + *((int*) (buffer + offset));
+        }
+
+        //iterate
+        int step;
+        var steps = endIndex - startIndex;
+        for (step = 0; step < steps; step++) {
+            //target is frame at offset
+            visitor(step, new ByteBuffer(buffer, BufferSize, offset + sizeof(int), /*frameSize: */ *((int*) (buffer + offset))));
+            offset += sizeof(int) + *((int*) (buffer + offset));
         }
     }
 
@@ -127,22 +126,21 @@ public class ShardFrameCollection : IDisposable {
         if (startIndex < 0 || startIndex + endIndex > _length)
             throw new IndexOutOfRangeException();
 
-        fixed (byte* buffer = Buffer) {
-            //skip to needed offset
-            long offset = Buckets[startIndex / _bucketSize].Offset;
-            var jumps = startIndex % _bucketSize;
-            for (int i = 0; i < jumps; i++) {
-                offset += sizeof(int) + *((int*) (buffer + offset));
-            }
+        byte* buffer = Buffer;
+        //skip to needed offset
+        long offset = Buckets[startIndex / _bucketSize].Offset;
+        var jumps = startIndex % _bucketSize;
+        for (int i = 0; i < jumps; i++) {
+            offset += sizeof(int) + *((int*) (buffer + offset));
+        }
 
-            //iterate
-            int step;
-            var steps = endIndex - startIndex;
-            for (step = 0; step < steps; step++) {
-                //target is frame at offset
-                visitor(step, state, new LongSpan<byte>(Buffer, offset + sizeof(int), /*frameSize: */ *((int*) (buffer + offset))));
-                offset += sizeof(int) + *((int*) (buffer + offset));
-            }
+        //iterate
+        int step;
+        var steps = endIndex - startIndex;
+        for (step = 0; step < steps; step++) {
+            //target is frame at offset
+            visitor(step, state, new ByteBuffer(Buffer, BufferSize, offset + sizeof(int), /*frameSize: */ *((int*) (buffer + offset))));
+            offset += sizeof(int) + *((int*) (buffer + offset));
         }
     }
 
@@ -162,17 +160,24 @@ public class ShardFrameCollection : IDisposable {
         }
     }
 
-    public void Reset(bool clearBuffer = false) {
-        if (clearBuffer)
-            Array.Fill(Buffer, default);
-
+    public void Reset() {
         Buckets = new StructList<BucketIndex>(4) {
             new BucketIndex(0L, 0)
         };
     }
 
+    private unsafe void ReleaseUnmanagedResources() {
+        Marshal.FreeHGlobal((IntPtr) Buffer);
+    }
+
     public void Dispose() {
         Buckets.Dispose();
-        Buffer = null;
+        ReleaseUnmanagedResources();
+
+        GC.SuppressFinalize(this);
+    }
+
+    ~ShardFrameCollection() {
+        ReleaseUnmanagedResources();
     }
 }

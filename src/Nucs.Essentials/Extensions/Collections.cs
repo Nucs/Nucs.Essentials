@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Nucs.Collections.Layouts;
 using Nucs.Collections.Structs;
 
@@ -15,6 +17,36 @@ namespace Nucs.Extensions {
             Array.Resize(ref arr, arr.Length + 1);
             arr[arr.Length - 1] = item;
             return arr;
+        }
+
+        public static unsafe void Resize<T>(ref T[]? array, long newSize) {
+            if (newSize < 0)
+                throw new ArgumentOutOfRangeException(nameof(newSize));
+
+            T[]? src = array; // local copy
+            if (src == null) {
+                array = new T[newSize];
+                return;
+            }
+
+            if (src.Length != newSize) {
+                // Due to array variance, it's possible that the incoming array is
+                // actually of type U[], where U:T; or that an int[] <-> uint[] or
+                // similar cast has occurred. In any case, since it's always legal
+                // to reinterpret U as T in this scenario (but not necessarily the
+                // other way around), we can use Buffer.Memmove here.
+
+                T[] dst = new T[newSize];
+                Buffer.MemoryCopy(
+                    source: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(src)),
+                    destination: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(dst)),
+                    destinationSizeInBytes: newSize, 
+                    sourceBytesToCopy: Math.Min(src.LongLength, newSize));
+                
+                array = dst;
+            }
+
+            Debug.Assert(array != null);
         }
 
         /// <summary>

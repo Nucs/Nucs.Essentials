@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Nucs.Collections.Structs;
+namespace Nucs.Collections;
 
 public sealed class SpanDebugView {
     public readonly byte[] _array;

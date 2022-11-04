@@ -40,7 +40,7 @@ public class ShardFrameCollection : IDisposable {
         };
     }
 
-    public unsafe BucketIndex Add(ReadOnlySpan<byte> data) {
+    public unsafe void Add(ReadOnlySpan<byte> data) {
         int subBucketIndex = _length / _bucketSize;
         if (Buckets.Length == subBucketIndex) {
             //we need to produce a new bucket
@@ -63,7 +63,29 @@ public class ShardFrameCollection : IDisposable {
         _length++;
         bucket.TotalLength += frameSize;
         DataEndOffset += frameSize;
-        return bucket;
+    }
+
+    public unsafe void Add(byte* source, int length) {
+        int subBucketIndex = _length / _bucketSize;
+        if (Buckets.Length == subBucketIndex) {
+            //we need to produce a new bucket
+            Buckets.Add(new BucketIndex(Buckets[subBucketIndex - 1].EndOffset, 0));
+        }
+
+        ref BucketIndex bucket = ref Buckets[subBucketIndex];
+        int frameSize = sizeof(int) + length;
+        EnsureCapacity(bucket.EndOffset + frameSize);
+
+        int* dest = (int*) (Buffer + bucket.EndOffset);
+        *dest = length;
+
+        System.Buffer.MemoryCopy(source: source, destination: &dest[1],
+                                 destinationSizeInBytes: BufferSize - bucket.EndOffset,
+                                 sourceBytesToCopy: length);
+
+        _length++;
+        bucket.TotalLength += frameSize;
+        DataEndOffset += frameSize;
     }
 
     protected unsafe void EnsureCapacity(long expectedSize) {

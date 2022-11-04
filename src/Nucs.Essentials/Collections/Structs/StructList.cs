@@ -105,6 +105,15 @@ namespace Nucs.Collections.Structs {
             return item;
         }
 
+        public ref T AddRefInline(T item) {
+            var newCount = _count + 1;
+            EnsureCapacity(newCount);
+            ref var itemAt = ref _arr[_count];
+            itemAt = item;
+            _count = newCount;
+            return ref itemAt;
+        }
+
         internal void AddUnlocked(T item) {
             var newCount = _count + 1;
             EnsureCapacity(newCount);

@@ -49,18 +49,32 @@ namespace Nucs.Extensions {
             Debug.Assert(array != null);
         }
 
-        public static unsafe void ResizeMarshalled(ref byte* buffer, long bufferSize, long newSize, bool releasePreviousBuffer) {
-            if (newSize < 0)
+        /// <summary>
+        ///     Similar to <see cref="Array.Resize{T}"/>, just for a memory block created by <see cref="Marshal.AllocHGlobal(int)"/>.
+        /// </summary>
+        /// <param name="buffer">A pointer to a buffer allocated by <see cref="Marshal.AllocHGlobal(int)"/>. Can be <see cref="Unsafe.NullRef{T}"/></param>
+        /// <param name="bufferSize">The length in bytes of the allocated pointer</param>
+        /// <param name="newSize">The new length in requested in bytes</param>
+        /// <param name="releasePreviousBuffer">Should the previous buffer be freed or just copied over</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static unsafe void ResizeMarshalled(ref byte* buffer, ref long bufferSize, long newSize, bool releasePreviousBuffer) {
+            if (newSize <= 0)
                 throw new ArgumentOutOfRangeException(nameof(newSize));
 
             byte* src = buffer; // local copy
-            if (bufferSize != newSize) {
-                // Due to array variance, it's possible that the incoming array is
-                // actually of type U[], where U:T; or that an int[] <-> uint[] or
-                // similar cast has occurred. In any case, since it's always legal
-                // to reinterpret U as T in this scenario (but not necessarily the
-                // other way around), we can use Buffer.Memmove here.
+            if (Unsafe.IsNullRef(ref Unsafe.AsRef<byte>(src))) {
+                buffer = (byte*) Marshal.AllocHGlobal(new IntPtr(newSize));
+                bufferSize = newSize;
+                return;
+            }
 
+            if (bufferSize == newSize)
+                return;
+
+            if (releasePreviousBuffer) {
+                buffer = (byte*) Marshal.ReAllocHGlobal(new IntPtr(src), new IntPtr(newSize));
+                bufferSize = newSize;
+            } else {
                 byte* dst = (byte*) Marshal.AllocHGlobal(new IntPtr(newSize));
                 Buffer.MemoryCopy(
                     source: src,
@@ -69,11 +83,8 @@ namespace Nucs.Extensions {
                     sourceBytesToCopy: Math.Min(bufferSize, newSize));
 
                 buffer = dst;
-                if (releasePreviousBuffer)
-                    Marshal.FreeHGlobal(new IntPtr(src));
+                bufferSize = newSize;
             }
-
-            Debug.Assert(buffer != null);
         }
 
         /// <summary>

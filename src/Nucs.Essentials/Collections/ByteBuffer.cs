@@ -3,17 +3,18 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace Nucs.Collections;
 
-public sealed class SpanDebugView {
+public sealed class ByteBufferView {
     public readonly byte[] _array;
 
-    public SpanDebugView(ByteBuffer span) {
+    public ByteBufferView(ByteBuffer span) {
         _array = span.ToArray();
     }
 
-    public SpanDebugView(ReadOnlySpan<byte> span) {
+    public ByteBufferView(ReadOnlySpan<byte> span) {
         _array = span.ToArray();
     }
 
@@ -21,42 +22,18 @@ public sealed class SpanDebugView {
     public byte[] Items => _array;
 }
 
-// ByReference<T> is meant to be used to represent "ref T" fields. It is working
-// around lack of first class support for byref fields in C# and IL. The JIT and
-// type loader has special handling for it that turns it into a thin wrapper around ref T.
-public readonly ref struct ByReference<T> {
-    #pragma warning disable CA1823, 169 // public field '{blah}' is never used
-    public readonly IntPtr _value;
-    #pragma warning restore CA1823, 169
-
-    public unsafe ByReference(ref T value) {
-        // Implemented as a JIT intrinsic - This default implementation is for
-        // completeness and to provide a concrete error if called via reflection
-        // or if intrinsic is missed.
-        _value = new IntPtr(Unsafe.AsPointer(ref value));
-    }
-
-    public unsafe ref T Value {
-        // Implemented as a JIT intrinsic - This default implementation is for
-        // completeness and to provide a concrete error if called via reflection
-        // or if the intrinsic is missed.
-
-        get => ref Unsafe.AsRef<T>(_value.ToPointer());
-    }
-}
-
 /// <summary>
 /// Span represents a contiguous region of arbitrary memory. Unlike arrays, it can point to either managed
 /// or native memory, or to memory allocated on the stack. It is type- and memory-safe.
 /// </summary>
-[DebuggerTypeProxy(typeof(SpanDebugView))]
+[DebuggerTypeProxy(typeof(ByteBufferView))]
 [DebuggerDisplay("{ToString(),raw}")]
-public unsafe readonly ref struct ByteBuffer {
+public readonly unsafe ref struct ByteBuffer {
     /// <summary>A byref or a native ptr.</summary>
-    public readonly unsafe byte* _pointer;
+    public readonly byte* Pointer;
 
     /// <summary>The number of elements this Span contains.</summary>
-    public readonly long _length;
+    public readonly long Length;
 
     /// <summary>
     /// Creates a new span over the entirety of the target array.
@@ -85,8 +62,8 @@ public unsafe readonly ref struct ByteBuffer {
         if (start > bufferSize || length > bufferSize - start)
             throw new ArgumentOutOfRangeException();
 
-        _pointer = buffer + start;
-        _length = length;
+        Pointer = buffer + start;
+        Length = length;
     }
 
     /// <summary>
@@ -100,24 +77,17 @@ public unsafe readonly ref struct ByteBuffer {
     public unsafe ref byte this[long index] {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get {
-            if (index >= _length)
+            if (index >= Length)
                 throw new ArgumentOutOfRangeException();
-            return ref _pointer[index];
+            return ref Pointer[index];
         }
-    }
-
-    /// <summary>
-    /// The number of items in the span.
-    /// </summary>
-    public long Length {
-        get => _length;
     }
 
     /// <summary>
     /// Returns true if Length is 0.
     /// </summary>
     public bool IsEmpty {
-        get => 0 >= _length; // Workaround for https://github.com/dotnet/runtime/issues/10950
+        get => 0 >= Length; // Workaround for https://github.com/dotnet/runtime/issues/10950
     }
 
     /// <summary>
@@ -201,7 +171,7 @@ public unsafe readonly ref struct ByteBuffer {
     public ref byte GetPinnableReference() {
         // Ensure that the native code has just one forward branch that is predicted-not-taken.
         ref byte ret = ref Unsafe.NullRef<byte>();
-        if (_length != 0) ret = ref _pointer[0];
+        if (Length != 0) ret = ref Pointer[0];
         return ref ret;
     }
 
@@ -234,8 +204,8 @@ public unsafe readonly ref struct ByteBuffer {
         // check, and one for the result of TryCopyTo. Since these checks are equivalent,
         // we can optimize by performing the check once ourselves then calling Memmove directly.
 
-        if (_length <= destination.Length) {
-            Buffer.MemoryCopy(_pointer, destination._pointer, _length, _length);
+        if (Length <= destination.Length) {
+            Buffer.MemoryCopy(Pointer, destination.Pointer, Length, Length);
         } else {
             throw new ArgumentException("Dest too small");
         }
@@ -251,8 +221,8 @@ public unsafe readonly ref struct ByteBuffer {
     /// return false and no data is written to the destination.</returns>
     public unsafe bool TryCopyTo(ByteBuffer destination) {
         bool retVal = false;
-        if (_length <= destination.Length) {
-            Buffer.MemoryCopy(_pointer, destination._pointer, destination._length, _length);
+        if (Length <= destination.Length) {
+            Buffer.MemoryCopy(Pointer, destination.Pointer, destination.Length, Length);
             retVal = true;
         }
 
@@ -264,15 +234,15 @@ public unsafe readonly ref struct ByteBuffer {
     /// this does *not* check to see if the *contents* are equal.
     /// </summary>
     public static bool operator ==(ByteBuffer left, ByteBuffer right) =>
-        left._length == right._length &&
-        Unsafe.AreSame<byte>(ref Unsafe.AsRef<byte>(left._pointer), ref Unsafe.AsRef<byte>(right._pointer));
+        left.Length == right.Length &&
+        Unsafe.AreSame<byte>(ref Unsafe.AsRef<byte>(left.Pointer), ref Unsafe.AsRef<byte>(right.Pointer));
 
     /// <summary>
     /// For <see cref="Span{Char}"/>, returns a new instance of string that represents the characters pointed to by the span.
     /// Otherwise, returns a <see cref="string"/> with the name of the type and the number of elements.
     /// </summary>
     public override string ToString() {
-        return string.Format("LongSpan<{0}>[{1}]", typeof(byte).Name, _length);
+        return string.Format("LongSpan<{0}>[{1}]", typeof(byte).Name, Length);
     }
 
     /// <summary>
@@ -284,10 +254,10 @@ public unsafe readonly ref struct ByteBuffer {
     /// </exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe ByteBuffer Slice(long start) {
-        if (start > _length)
+        if (start > Length)
             throw new ArgumentOutOfRangeException();
 
-        return new ByteBuffer(_pointer + start, _length - start);
+        return new ByteBuffer(Pointer + start, Length - start);
     }
 
     /// <summary>
@@ -299,10 +269,10 @@ public unsafe readonly ref struct ByteBuffer {
     /// </exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe ByteBuffer Slice(int start) {
-        if (start > _length)
+        if (start > Length)
             throw new ArgumentOutOfRangeException();
 
-        return new ByteBuffer(_pointer + start, _length - start);
+        return new ByteBuffer(Pointer + start, Length - start);
     }
 
     /// <summary>
@@ -315,10 +285,10 @@ public unsafe readonly ref struct ByteBuffer {
     /// </exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe ByteBuffer Slice(long start, long length) {
-        if (start > _length || length > _length - start)
+        if (start > Length || length > Length - start)
             throw new ArgumentOutOfRangeException();
 
-        return new ByteBuffer(_pointer + start, length);
+        return new ByteBuffer(Pointer + start, length);
     }
 
     /// <summary>
@@ -328,11 +298,19 @@ public unsafe readonly ref struct ByteBuffer {
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe byte[] ToArray() {
-        if (_length == 0)
+        if (Length == 0)
             return Array.Empty<byte>();
 
-        var destination = new byte[_length];
-        Buffer.MemoryCopy(_pointer, Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(destination)), _length, _length);
+        var destination = new byte[Length];
+        Buffer.MemoryCopy(Pointer, Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(destination)), Length, Length);
         return destination;
+    }
+
+    /// <summary>
+    ///     Will try to fit current ByteBuffer into a span supporting up to int.MaxValue bytes.
+    /// </summary>
+    /// <returns></returns>
+    public Span<byte> TryToSpan() {
+        return new Span<byte>(Pointer, checked((int) Length));
     }
 }

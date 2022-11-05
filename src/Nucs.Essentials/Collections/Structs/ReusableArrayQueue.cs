@@ -9,34 +9,33 @@ namespace Nucs.Collections.Structs {
     [DebuggerTypeProxy(typeof(QueueDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
     [Serializable]
-    public struct ReusableListQueue<T> : IEnumerable<T>, IEnumerable, ICollection, IReadOnlyCollection<T>, IDisposable {
+    public struct ReusableArrayQueue<T> : IEnumerable<T>, IEnumerable, ICollection, IReadOnlyCollection<T>, IDisposable {
         #nullable disable
-        private List<T> _array;
+        private T[] _array;
         private int _head;
         private int _size;
 
-        public List<T> InternalArray => _array;
-
+        public T[] InternalArray => _array;
 
         #nullable enable
 
-        public ReusableListQueue(List<T> collection, int startIndex, int count) {
+        public ReusableArrayQueue(T[] collection, int startIndex, int count) {
             _head = startIndex;
             _array = collection;
             _size = count;
-            if (count == _array.Count) {
+            if (count == _array.Length) {
                 return;
             }
         }
 
-        public ReusableListQueue(List<T> collection) : this(collection, 0, collection.Count) { }
+        public ReusableArrayQueue(T[] collection) : this(collection, 0, collection.Length) { }
 
         public void Reuse() {
-            this = new ReusableListQueue<T>(_array, 0, _array.Count);
+            this = new ReusableArrayQueue<T>(_array, 0, _array.Length);
         }
 
         public void Reuse(int startIndex, int count) {
-            this = new ReusableListQueue<T>(_array, startIndex, count);
+            this = new ReusableArrayQueue<T>(_array, startIndex, count);
         }
 
         public void CopyTo(Array array, int index) {
@@ -108,7 +107,7 @@ namespace Nucs.Collections.Structs {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void MoveNext(ref int index) {
             int num = index + 1;
-            if (num == _array.Count)
+            if (num == _array.Length)
                 num = 0;
             index = num;
         }
@@ -117,11 +116,11 @@ namespace Nucs.Collections.Structs {
         #nullable enable
         public struct Enumerator : IEnumerator<T>, IDisposable, IEnumerator {
             #nullable disable
-            private readonly ReusableListQueue<T> _q;
+            private readonly ReusableArrayQueue<T> _q;
             private int _index;
             private T _currentElement;
 
-            internal Enumerator(ReusableListQueue<T> q) {
+            internal Enumerator(ReusableArrayQueue<T> q) {
                 _q = q;
                 _index = -1;
                 _currentElement = default;
@@ -142,8 +141,8 @@ namespace Nucs.Collections.Structs {
                     return false;
                 }
 
-                List<T> array = _q._array;
-                int length = array.Count;
+                T[] array = _q._array;
+                int length = array.Length;
                 int index = _q._head + _index;
                 if (index >= length)
                     index -= length;

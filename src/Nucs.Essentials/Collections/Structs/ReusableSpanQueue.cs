@@ -9,34 +9,33 @@ namespace Nucs.Collections.Structs {
     [DebuggerTypeProxy(typeof(QueueDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
     [Serializable]
-    public struct ReusableListQueue<T> : IEnumerable<T>, IEnumerable, ICollection, IReadOnlyCollection<T>, IDisposable {
+    public ref struct ReusableSpanQueue<T> {
         #nullable disable
-        private List<T> _array;
+        private ReadOnlySpan<T> _array;
         private int _head;
         private int _size;
 
-        public List<T> InternalArray => _array;
-
+        public ReadOnlySpan<T> InternalArray => _array;
 
         #nullable enable
 
-        public ReusableListQueue(List<T> collection, int startIndex, int count) {
+        public ReusableSpanQueue(ReadOnlySpan<T> collection, int startIndex, int count) {
             _head = startIndex;
             _array = collection;
             _size = count;
-            if (count == _array.Count) {
+            if (count == _array.Length) {
                 return;
             }
         }
 
-        public ReusableListQueue(List<T> collection) : this(collection, 0, collection.Count) { }
+        public ReusableSpanQueue(ReadOnlySpan<T> collection) : this(collection, 0, collection.Length) { }
 
         public void Reuse() {
-            this = new ReusableListQueue<T>(_array, 0, _array.Count);
+            this = new ReusableSpanQueue<T>(_array, 0, _array.Length);
         }
 
         public void Reuse(int startIndex, int count) {
-            this = new ReusableListQueue<T>(_array, startIndex, count);
+            this = new ReusableSpanQueue<T>(_array, startIndex, count);
         }
 
         public void CopyTo(Array array, int index) {
@@ -45,10 +44,6 @@ namespace Nucs.Collections.Structs {
 
         public readonly int Count => _size;
 
-        bool ICollection.IsSynchronized => false;
-
-        object ICollection.SyncRoot => null;
-
         public void Clear() {
             _size = 0;
             _head = 0;
@@ -56,13 +51,6 @@ namespace Nucs.Collections.Structs {
 
         public Enumerator GetEnumerator() =>
             new Enumerator(this);
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() =>
-            new Enumerator(this);
-
-        IEnumerator IEnumerable.GetEnumerator() =>
-            new Enumerator(this);
-
 
         #nullable enable
         public T Dequeue() {
@@ -108,20 +96,20 @@ namespace Nucs.Collections.Structs {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void MoveNext(ref int index) {
             int num = index + 1;
-            if (num == _array.Count)
+            if (num == _array.Length)
                 num = 0;
             index = num;
         }
 
 
         #nullable enable
-        public struct Enumerator : IEnumerator<T>, IDisposable, IEnumerator {
+        public ref struct Enumerator {
             #nullable disable
-            private readonly ReusableListQueue<T> _q;
+            private readonly ReusableSpanQueue<T> _q;
             private int _index;
             private T _currentElement;
 
-            internal Enumerator(ReusableListQueue<T> q) {
+            internal Enumerator(ReusableSpanQueue<T> q) {
                 _q = q;
                 _index = -1;
                 _currentElement = default;
@@ -142,8 +130,8 @@ namespace Nucs.Collections.Structs {
                     return false;
                 }
 
-                List<T> array = _q._array;
-                int length = array.Count;
+                ReadOnlySpan<T> array = _q._array;
+                int length = array.Length;
                 int index = _q._head + _index;
                 if (index >= length)
                     index -= length;
@@ -164,9 +152,7 @@ namespace Nucs.Collections.Structs {
             private void ThrowEnumerationNotStartedOrEnded() =>
                 throw new InvalidOperationException(_index == -1 ? "SR.InvalidOperation_EnumNotStarted" : "SR.InvalidOperation_EnumEnded");
 
-            object? IEnumerator.Current => Current;
-
-            void IEnumerator.Reset() {
+            public void Reset() {
                 _index = -1;
                 _currentElement = default;
             }

@@ -8,7 +8,20 @@ using Nucs.Collections.Layouts;
 using Nucs.Exceptions;
 
 namespace Nucs.Collections.Structs {
-    [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
+    internal ref struct StructListDebugView<T> {
+        public StructListDebugView(StructList<T> collection) : this() {
+            if (collection.IsNullOrEmpty)
+                return;
+
+            Array = collection.AsSpan();
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public ReadOnlySpan<T> Array;
+    }
+
+    [DebuggerTypeProxy(typeof(StructListDebugView<>))]
+    [DebuggerDisplay("{ToString(),raw}")]
     public struct StructList<T> : IList<T>, IReadOnlyList<T>, /*IStructEnumerable<T, IListEnumerator<T, StructList<T>>>,*/ IList, IDisposable {
         internal int _count;
 

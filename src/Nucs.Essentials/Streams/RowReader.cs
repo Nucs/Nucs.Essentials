@@ -5,22 +5,6 @@ namespace Nucs.Extensions {
     ///     Performantly does a string split based on new line characters that's also cross platform and resolved during construction or passed as a parameter.
     /// </summary>
     public ref struct RowReader {
-        public enum LineDelimiter {
-            /// <summary>
-            ///     \r
-            /// </summary>
-            CR,
-
-            /// <summary>
-            ///     \n
-            /// </summary>
-            LF,
-
-            /// <summary>
-            ///     \r\n
-            /// </summary>
-            CRLF
-        }
 
         private readonly ReadOnlySpan<char> _line;
         private int _lastIndex;
@@ -64,12 +48,7 @@ namespace Nucs.Extensions {
             _line = span;
             _lastIndex = 0;
             //identify delimiter type
-            _delimiter = delimiter switch {
-                LineDelimiter.CR   => "\r",
-                LineDelimiter.LF   => "\n",
-                LineDelimiter.CRLF => "\r\n",
-                _                  => throw new ArgumentOutOfRangeException(nameof(delimiter), delimiter, null)
-            };
+            _delimiter = delimiter.AsString();
         }
 
         public RowReader(string text) : this((ReadOnlySpan<char>) text) { }

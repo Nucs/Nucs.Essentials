@@ -73,7 +73,7 @@ namespace Nucs.Essentials.UnitTests {
         [Fact]
         public void ReadCharDelimitedWithRowDelimiter() {
             var rowReader = new RowReader("aaa,aa,aaaa,aaaa,aa\r\na,a,a,a,a");
-            rowReader.ResolvedDelimiter.Should().Be(RowReader.LineDelimiter.CRLF);
+            rowReader.ResolvedDelimiter.Should().Be(LineDelimiter.CRLF);
             var row = new LineReader(rowReader.Next());
 
             row.CountItems(',').Should().Be(5);

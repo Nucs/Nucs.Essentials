@@ -108,21 +108,23 @@ public class ShardFrameCollection : IDisposable {
 
     public unsafe void Add(ReadOnlySpan<byte> data) {
         int subBucketIndex = checked((int) (_length / _bucketSize));
-        if (Buckets.Length == subBucketIndex) {
+        (BucketIndex[] buckets, int bucketsCount) = Buckets;
+        if (bucketsCount == subBucketIndex) {
             //we need to produce a new bucket
-            Buckets.Add(new BucketIndex(Buckets[subBucketIndex - 1].EndOffset, 0));
+            Buckets.Add(new BucketIndex(buckets[subBucketIndex - 1].EndOffset, 0));
+            buckets = Buckets.InternalArray;
         }
 
-        ref BucketIndex bucket = ref Buckets[subBucketIndex];
+        ref BucketIndex bucket = ref buckets[subBucketIndex];
         int frameSize = sizeof(int) + data.Length;
-        EnsureCapacity(bucket.EndOffset + frameSize);
-
+        var endOffset = bucket.EndOffset;
+        EnsureCapacity(endOffset + frameSize);
         fixed (byte* source = data) {
-            int* dest = (int*) (Buffer + bucket.EndOffset);
+            int* dest = (int*) (Buffer + endOffset);
             *dest = data.Length;
 
             System.Buffer.MemoryCopy(source: source, destination: &dest[1],
-                                     destinationSizeInBytes: _bufferSize - bucket.EndOffset,
+                                     destinationSizeInBytes: _bufferSize - endOffset,
                                      sourceBytesToCopy: data.Length);
         }
 
@@ -133,17 +135,20 @@ public class ShardFrameCollection : IDisposable {
 
     public unsafe void Add(ReadOnlySpan<char> str) {
         int subBucketIndex = checked((int) (_length / _bucketSize));
-        if (Buckets.Length == subBucketIndex) {
+        (BucketIndex[] buckets, int bucketsCount) = Buckets;
+        if (bucketsCount == subBucketIndex) {
             //we need to produce a new bucket
-            Buckets.Add(new BucketIndex(Buckets[subBucketIndex - 1].EndOffset, 0));
+            Buckets.Add(new BucketIndex(buckets[subBucketIndex - 1].EndOffset, 0));
+            buckets = Buckets.InternalArray;
         }
 
-        ref BucketIndex bucket = ref Buckets[subBucketIndex];
-        if (bucket.EndOffset + str.Length * 4 /*peak length any encoding*/ + sizeof(int) > _bufferSize)
-            EnsureCapacity(bucket.EndOffset + Encoding.GetByteCount(str) + sizeof(int));
+        ref BucketIndex bucket = ref buckets[subBucketIndex];
+        var endOffset = bucket.EndOffset;
+        if (endOffset + str.Length * 4 /*peak length any encoding*/ + sizeof(int) > _bufferSize)
+            EnsureCapacity(endOffset + Encoding.GetByteCount(str) + sizeof(int));
 
-        int* dest = (int*) (Buffer + bucket.EndOffset);
-        var read = Encoding.GetBytes(chars: str, bytes: new Span<byte>(&dest[1], unchecked((int) Math.Min(int.MaxValue, (_bufferSize - bucket.EndOffset - sizeof(int))))));
+        int* dest = (int*) (Buffer + endOffset);
+        var read = Encoding.GetBytes(chars: str, bytes: new Span<byte>(&dest[1], unchecked((int) Math.Min(int.MaxValue, (_bufferSize - endOffset - sizeof(int))))));
         *dest = read;
         var frameSize = sizeof(int) + read;
 
@@ -154,20 +159,23 @@ public class ShardFrameCollection : IDisposable {
 
     public unsafe void Add(byte* source, int length) {
         int subBucketIndex = checked((int) (_length / _bucketSize));
-        if (Buckets.Length == subBucketIndex) {
+        (BucketIndex[] buckets, int bucketsCount) = Buckets;
+        if (bucketsCount == subBucketIndex) {
             //we need to produce a new bucket
-            Buckets.Add(new BucketIndex(Buckets[subBucketIndex - 1].EndOffset, 0));
+            Buckets.Add(new BucketIndex(buckets[subBucketIndex - 1].EndOffset, 0));
+            buckets = Buckets.InternalArray;
         }
 
-        ref BucketIndex bucket = ref Buckets[subBucketIndex];
+        ref BucketIndex bucket = ref buckets[subBucketIndex];
+        var endOffset = bucket.EndOffset;
         int frameSize = sizeof(int) + length;
-        EnsureCapacity(bucket.EndOffset + frameSize);
+        EnsureCapacity(endOffset + frameSize);
 
-        int* dest = (int*) (Buffer + bucket.EndOffset);
+        int* dest = (int*) (Buffer + endOffset);
         *dest = length;
 
         System.Buffer.MemoryCopy(source: source, destination: &dest[1],
-                                 destinationSizeInBytes: _bufferSize - bucket.EndOffset,
+                                 destinationSizeInBytes: _bufferSize - endOffset,
                                  sourceBytesToCopy: length);
 
         _length++;

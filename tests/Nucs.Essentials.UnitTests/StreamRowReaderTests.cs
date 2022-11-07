@@ -24,7 +24,7 @@ namespace Nucs.Essentials.UnitTests {
         public void ReadEntirely() {
             //action
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(EmbeddedResourceHelper.ReadEmbeddedResource("stocks.csv")!));
-            using var reader = new StreamRowReader(ms, LineDelimiter.CRLF, bufferSize: 25, splitOptions: StringSplitOptions.RemoveEmptyEntries);
+            using var reader = new StreamRowReader(ms, LineDelimiter.CRLF, streamBufferSize: 25, splitOptions: StringSplitOptions.RemoveEmptyEntries);
             ReadOnlySpan<char> read = default;
             int i = 0;
             while (reader.HasNext) {
@@ -42,7 +42,7 @@ namespace Nucs.Essentials.UnitTests {
             //action
             var sw = Stopwatch.StartNew();
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(EmbeddedResourceHelper.ReadEmbeddedResource("stocks.csv")!));
-            using var reader = new StreamRowReader(ms, LineDelimiter.CRLF, bufferSize: 25, splitOptions: StringSplitOptions.RemoveEmptyEntries);
+            using var reader = new StreamRowReader(ms, LineDelimiter.CRLF, streamBufferSize: 25, splitOptions: StringSplitOptions.RemoveEmptyEntries);
             ReadOnlySpan<char> read = default;
             reader.Skip(1); //skip header
             int i = 0;
@@ -80,7 +80,7 @@ namespace Nucs.Essentials.UnitTests {
             for (int j = 0; j < 100000; j++) {
                 //action
                 using var ms = new MemoryStream(bytes);
-                using var reader = new StreamRowReader(ms, LineDelimiter.CRLF, bufferSize: 8192, splitOptions: StringSplitOptions.RemoveEmptyEntries);
+                using var reader = new StreamRowReader(ms, LineDelimiter.CRLF, streamBufferSize: 8192, splitOptions: StringSplitOptions.RemoveEmptyEntries);
                 while (reader.HasNext) {
                     read = reader.Next().Trim();
                     i++;

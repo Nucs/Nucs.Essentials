@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using FluentAssertions;
+using Nucs.Collections;
 using Nucs.Collections.Structs;
 using Xunit;
 using Xunit.Abstractions;
@@ -224,9 +225,9 @@ namespace Nucs.Essentials.UnitTests {
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Benchmark only")]
         public void StringFramesAboveIntMaxValue() {
-            var shard = new ShardFrameCollection(10, bucketSize: 10, supportBufferExpansion: true, bufferExpansionFactor: 1.01f);
+            var shard = new ShardFrameCollection(int.MaxValue / 10, bucketSize: 1000, supportBufferExpansion: true, bufferExpansionFactor: 1.01f);
             _testOutputHelper.WriteLine("Started");
 
             //append
@@ -250,8 +251,28 @@ namespace Nucs.Essentials.UnitTests {
             });*/
         }
 
-        [Fact(Skip = "Benchmark, explicitly enable")]
+        [Fact(Skip = "Benchmark only")]
         public void StringFrameWriteBenchmark() {
+            const int bucketSize = 1000;
+            const int initialSize = 10000;
+            const float bufferExpansionFactor = 1.1f;
+
+            var shard = new ShardFrameCollection(initialSize, bucketSize: bucketSize, supportBufferExpansion: true, bufferExpansionFactor: bufferExpansionFactor);
+            _testOutputHelper.WriteLine("Started");
+
+            //append
+            var sw = Stopwatch.StartNew();
+            var str = 1.ToString().AsSpan();
+            var len = int.MaxValue * 1.05;
+            for (long i = 0; i < len; i++) {
+                shard.Add(str);
+                if (i % 10_000_001 == 0)
+                    _testOutputHelper.WriteLine($"Added {i} items after {sw.ElapsedMilliseconds}ms - perf: {i / sw.Elapsed.TotalSeconds:0} items/s; per item {(sw.Elapsed.TotalMilliseconds / i) * 1000 * 1000:0.000}ns; progress: {i / (int.MaxValue * 1.05d) * 100:0.00}%");
+            }
+        }
+
+        [Fact(Skip = "Benchmark only")]
+        public void StringFrameWriteBenchmarkOptimization() {
             const int bucketSize = 1000;
             const int initialSize = 10000;
             const float bufferExpansionFactor = 1.1f;
@@ -292,7 +313,7 @@ namespace Nucs.Essentials.UnitTests {
             steps.Value.Should().Be((int) shard.Count);
         }
 
-        [Fact]
+        [Fact(Skip = "Benchmark only")]
         public void ShardCountAboveIntMaxValue() {
             var shard = new ShardFrameCollection((long) (int.MaxValue * 1.05), bucketSize: 128_000, true, 1.01f);
             long i = 0;

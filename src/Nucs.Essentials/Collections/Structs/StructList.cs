@@ -32,21 +32,37 @@ namespace Nucs.Collections.Structs {
 
 
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        public readonly bool IsNullOrEmpty => _arr == null || _count == 0;
+        public readonly bool IsNullOrEmpty {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _arr == null || _count == 0; }
+        }
 
 
         internal readonly Span<T> AsUnlockedSpan => new Span<T>(_arr, 0, _count);
 
-        public readonly T[] InternalArray => _arr;
+        public readonly T[] InternalArray {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _arr; }
+        }
 
-        public readonly int Count => _count;
+        public readonly int Count {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _count; }
+        }
 
 
-        public readonly int Length => _count;
+        public readonly int Length {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _count; }
+        }
 
 
-        public readonly int Capacity => _arr.Length;
+        public readonly int Capacity {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return _arr.Length; }
+        }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Deconstruct(out T[] arr, out int count) {
             arr = _arr;
             count = _count;

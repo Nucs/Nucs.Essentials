@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{664D406C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Essentials.UnitTests", "tests\Nucs.Essentials.UnitTests\Nucs.Essentials.UnitTests.csproj", "{65C1ABD6-587B-467F-A9CC-0899AC6250F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Essentials.Benchmarks", "benchmark\Nucs.Essentials.Benchmarks\Nucs.Essentials.Benchmarks.csproj", "{AF0FB53B-5D1E-4748-812D-74D15E318C72}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmark", "benchmark", "{315B1620-0173-4587-82E3-8DBD846374E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +29,10 @@ Global
 		{65C1ABD6-587B-467F-A9CC-0899AC6250F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{65C1ABD6-587B-467F-A9CC-0899AC6250F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{65C1ABD6-587B-467F-A9CC-0899AC6250F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF0FB53B-5D1E-4748-812D-74D15E318C72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF0FB53B-5D1E-4748-812D-74D15E318C72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF0FB53B-5D1E-4748-812D-74D15E318C72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF0FB53B-5D1E-4748-812D-74D15E318C72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +40,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{34C0FACD-F3D9-400C-8945-554DD6B0819A} = {6ED356A7-8B47-4613-AD01-C85CF28491BD}
 		{65C1ABD6-587B-467F-A9CC-0899AC6250F3} = {664D406C-2F83-48F0-BFC3-408D5CB53C65}
+		{AF0FB53B-5D1E-4748-812D-74D15E318C72} = {315B1620-0173-4587-82E3-8DBD846374E3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3CB609D9-5D54-4C11-A371-DAAC8B74E430}

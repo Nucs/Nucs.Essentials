@@ -7,13 +7,13 @@ using Nucs.Extensions;
 
 
 /*
-|       Method |                 Text |      Mean |     Error |    StdDev | Ratio | RatioSD | Gen 0 | Gen 1 | Gen 2 | Allocated |
-|------------- |--------------------- |----------:|----------:|----------:|------:|--------:|------:|------:|------:|----------:|
-| NativeEncode | 1234(...)WXYZ [1054] | 121.39 ns | 254.34 ns | 13.941 ns |  1.00 |    0.00 |     - |     - |     - |         - |
-|   OursEncode | 1234(...)WXYZ [1054] | 642.31 ns | 494.52 ns | 27.107 ns |  5.32 |    0.41 |     - |     - |     - |         - |
-|              |                      |           |           |           |       |         |       |       |       |           |
-| NativeEncode |         Hello World! |  15.37 ns |  23.59 ns |  1.293 ns |  1.00 |    0.00 |     - |     - |     - |         - |
-|   OursEncode |         Hello World! |  14.67 ns |  22.68 ns |  1.243 ns |  0.96 |    0.15 |     - |     - |     - |         - |
+|       Method |                 Text |        Mean |       Error |    StdDev | Ratio | RatioSD |  Gen 0 |  Gen 1 | Gen 2 | Allocated |
+|------------- |--------------------- |------------:|------------:|----------:|------:|--------:|-------:|-------:|------:|----------:|
+| NativeDecode | 1234(...)WXYZ [1054] |   486.88 ns |   223.51 ns | 12.252 ns |  1.00 |    0.00 | 0.5102 | 0.0010 |     - |    2136 B |
+|   OursDecode | 1234(...)WXYZ [1054] | 1,139.07 ns | 1,051.41 ns | 57.631 ns |  2.34 |    0.14 | 0.5093 |      - |     - |    2136 B |
+|              |                      |             |             |           |       |         |        |        |       |           |
+| NativeDecode |         Hello World! |    32.53 ns |    28.85 ns |  1.581 ns |  1.00 |    0.00 | 0.0114 |      - |     - |      48 B |
+|   OursDecode |         Hello World! |    27.15 ns |    26.56 ns |  1.456 ns |  0.84 |    0.06 | 0.0115 |      - |     - |      48 B |
  */
 namespace Nucs.Essentials.Benchmarks {
     [ShortRunJob]
@@ -27,7 +27,8 @@ namespace Nucs.Essentials.Benchmarks {
         public string Text { get; set; }
         public byte[] TextBytes { get; set; }
 
-        public ASCIIEncodingDecodeBenchmark() {
+        [GlobalSetup]
+        public void Setup() {
             TextBytes = Encoding.ASCII.GetBytes(Text);
         }
 

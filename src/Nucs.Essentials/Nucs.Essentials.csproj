@@ -19,7 +19,8 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/Nucs/Nucs.Essentials</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Nucs/Nucs.Essentials</RepositoryUrl>
-    <PackageVersion>1.0.1</PackageVersion>
+    <PackageVersion>1.1.0</PackageVersion>
+    <PackageReleaseNotes>Added ShardFrameCollection, ReusableStructQueue, ValueStringBuilder, StreamRowReader, RowReader</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

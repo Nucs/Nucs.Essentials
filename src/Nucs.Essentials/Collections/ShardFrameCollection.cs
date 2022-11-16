@@ -14,7 +14,7 @@ namespace Nucs.Collections.Structs;
 public delegate void FrameVisitor(long frameIndex, ByteBuffer frame);
 public delegate void FrameVisitor<in TState>(long frameIndex, TState state, ByteBuffer frame);
 
-internal sealed class ShardFrameView {
+internal sealed class ShardFrameDebugViewer {
     private class DisplayHandle : SafeBuffer {
         public DisplayHandle(IntPtr handle, uint len) : base(false) {
             SetHandle(handle);
@@ -26,7 +26,7 @@ internal sealed class ShardFrameView {
         }
     }
 
-    public ShardFrameView(ShardFrameCollection shard) {
+    public ShardFrameDebugViewer(ShardFrameCollection shard) {
         unsafe {
             Buckets = shard.Buckets;
             Buffer = new UnmanagedMemoryAccessor(new DisplayHandle((IntPtr) shard.Buffer, (uint) unchecked(shard.BytesLength % uint.MaxValue)), 0, shard.BytesLength);
@@ -43,7 +43,7 @@ internal sealed class ShardFrameView {
 ///     Stores a collection of frames atwhich each frame can be sized differently. The distance is delimited by a bucket object keeping track of the offset every bucketSize parameter.
 ///     A frame can be int.MaxValue long and a frame collection buffer can be long.MaxValue long.
 /// </summary>
-[DebuggerTypeProxy(typeof(ShardFrameView))]
+[DebuggerTypeProxy(typeof(ShardFrameDebugViewer))]
 [DebuggerDisplay("{ToString(),raw}")]
 public class ShardFrameCollection : IDisposable {
     protected long _length;
@@ -55,12 +55,12 @@ public class ShardFrameCollection : IDisposable {
     public readonly Encoding Encoding;
     protected long _bufferSize;
     protected long _bytesLength;
-    
+
     /// <summary>
     ///     The number of frames this shard holds in total.
     /// </summary>
     public long Count => _length;
-    
+
     /// <summary>
     ///     The total buffer size in bytes.
     /// </summary>
@@ -315,7 +315,7 @@ public class ShardFrameCollection : IDisposable {
 
         return new Span<byte>(Buffer, (int) _length);
     }
-    
+
     /// <summary>
     ///     Attempts to return a span from internal memory if bytes length is less than <see cref="int.MaxValue"/>
     /// </summary>

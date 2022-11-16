@@ -112,6 +112,34 @@ namespace Nucs.Collections.Structs {
             _arr[_count - 1] = item;
         }
 
+        public void AddRange(Span<T> items) {
+            var initialSize = _count;
+            EnsureCapacity(initialSize + items.Length);
+            _count += items.Length;
+            items.CopyTo(new Span<T>(_arr, initialSize, _count - initialSize));
+        }
+
+        public void AddRange(ReadOnlySpan<T> items) {
+            var initialSize = _count;
+            EnsureCapacity(initialSize + items.Length);
+            _count += items.Length;
+            items.CopyTo(new Span<T>(_arr, initialSize, _count - initialSize));
+        }
+
+        public void AddRange(ReadOnlyMemory<T> items) {
+            var initialSize = _count;
+            EnsureCapacity(initialSize + items.Length);
+            _count += items.Length;
+            items.CopyTo(_arr.AsMemory(initialSize));
+        }
+
+        public void AddRange(ArraySegment<T> items) {
+            var initialSize = _count;
+            EnsureCapacity(initialSize + items.Count);
+            _count += items.Count;
+            items.CopyTo(new ArraySegment<T>(_arr, initialSize, _count - initialSize));
+        }
+
         public int AddToEnd(T item) {
             var idx = _count++;
             EnsureCapacity(idx + 1);
@@ -283,6 +311,29 @@ namespace Nucs.Collections.Structs {
             }
 
             return removed;
+        }
+
+        /// <summary>
+        ///     Removes <paramref name="length"/> items from the start of the list.
+        /// </summary>
+        /// <param name="length">Count of items to remove</param>
+        public void RemoveStart(int length) {
+            var originalCount = _count;
+            length = Math.Min(length, originalCount);
+            _arr.AsSpan(length, originalCount - length)
+                .CopyTo(new Span<T>(_arr));
+            _count -= length;
+        }
+
+        /// <summary>
+        ///     Removes <paramref name="length"/> items from the end of the list.
+        /// </summary>
+        /// <param name="length">Count of items to remove</param>
+        public void RemoveEnd(int length) {
+            var originalCount = _count;
+            _count -= Math.Min(length, originalCount);
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+                _arr.AsSpan(_count, originalCount).Clear();
         }
 
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() {
@@ -2116,6 +2167,38 @@ namespace Nucs.Collections.Structs {
 
         public readonly Span<T> AsSpan() {
             return new Span<T>(_arr, 0, _count);
+        }
+
+        public readonly Span<T> AsSpan(int startIndex) {
+            return new Span<T>(_arr, startIndex, _count - startIndex);
+        }
+
+        public readonly Span<T> AsSpan(int startIndex, int length) {
+            return new Span<T>(_arr, startIndex, Math.Min(length, _count - startIndex));
+        }
+
+        public readonly Memory<T> AsMemory() {
+            return new Memory<T>(_arr, 0, _count);
+        }
+
+        public readonly Memory<T> AsMemory(int startIndex) {
+            return new Memory<T>(_arr, startIndex, _count - startIndex);
+        }
+
+        public readonly Memory<T> AsMemory(int startIndex, int length) {
+            return new Memory<T>(_arr, startIndex, Math.Min(length, _count - startIndex));
+        }
+
+        public readonly ArraySegment<T> AsArraySegment() {
+            return new ArraySegment<T>(_arr, 0, _count);
+        }
+
+        public readonly ArraySegment<T> AsArraySegment(int startIndex) {
+            return new ArraySegment<T>(_arr, startIndex, _count - startIndex);
+        }
+
+        public readonly ArraySegment<T> AsArraySegment(int startIndex, int length) {
+            return new ArraySegment<T>(_arr, startIndex, Math.Min(length, _count - startIndex));
         }
     }
 

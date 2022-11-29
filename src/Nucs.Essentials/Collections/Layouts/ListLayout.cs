@@ -15,7 +15,7 @@ namespace Nucs.Collections.Layouts {
         public int Size;
         public int _version;
 
-        #if !(NETCOREAPP3_0 || NETCOREAPP3_1 || NET5_0)
+        #if !(NETCOREAPP3_0 || NETCOREAPP3_1 || NET5_0 || NET6_0 || NET7_0)
         #pragma warning disable 649
         public Object SyncRoot;
         #pragma warning restore 649
@@ -30,7 +30,7 @@ namespace Nucs.Collections.Layouts {
         public int Size;
         public int _version;
 
-        #if !(NETCOREAPP3_0 || NETCOREAPP3_1 || NET5_0)
+        #if !(NETCOREAPP3_0 || NETCOREAPP3_1 || NET5_0 || NET6_0 || NET7_0)
         #pragma warning disable 649
         public Object SyncRoot;
         #pragma warning restore 649
@@ -66,7 +66,7 @@ namespace Nucs.Collections.Layouts {
         public int Size;
         public int _version;
 
-        #if !(NETCOREAPP3_0 || NETCOREAPP3_1 || NET5_0)
+        #if !(NETCOREAPP3_0 || NETCOREAPP3_1 || NET5_0 || NET6_0 || NET7_0)
         #pragma warning disable 649
         public Object SyncRoot;
         #pragma warning restore 649

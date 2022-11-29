@@ -13,7 +13,7 @@
         public TValue Value;         // Value of entry
     }
     #else
-    #if (NET5_0)
+    #if (NET5_0 || NET6_0 || NET7_0)
     public struct Entry<TKey, TValue> {
         public uint HashCode;
         public int Next;

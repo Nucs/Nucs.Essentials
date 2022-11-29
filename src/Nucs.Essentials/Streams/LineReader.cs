@@ -46,7 +46,8 @@ namespace Nucs.Extensions {
 
         /// <returns>Number of items in this row</returns>
         public readonly int CountItems(string delimiter) {
-            if (_line.IsEmpty)
+            var line = _line;
+            if (line.IsEmpty)
                 return 0;
 
             if (delimiter.Length == 1)
@@ -54,9 +55,9 @@ namespace Nucs.Extensions {
 
             int items = 1;
             unsafe {
-                var len = _line.Length;
+                var len = line.Length;
                 var del_len = delimiter.Length;
-                fixed (char* str = _line) {
+                fixed (char* str = line) {
                     fixed (char* del = delimiter) {
                         for (int i = 0; i < len; i++) {
                             for (int j = 0; j < del_len; j++) {
@@ -79,10 +80,11 @@ namespace Nucs.Extensions {
         }
 
         public ReadOnlySpan<char> Next(char delimiter = ',') {
-            if (_lastIndex >= _line.Length)
+            var line = _line;
+            if (_lastIndex >= line.Length)
                 return ReadOnlySpan<char>.Empty;
 
-            var line = _line.Slice(_lastIndex);
+            line = line.Slice(_lastIndex);
             var i = line.IndexOf(delimiter);
             if (i == -1) {
                 _lastIndex += line.Length;
@@ -95,10 +97,11 @@ namespace Nucs.Extensions {
         }
 
         public ReadOnlySpan<char> Next(string delimiter) {
-            if (_lastIndex >= _line.Length)
+            var line = _line;
+            if (_lastIndex >= line.Length)
                 return ReadOnlySpan<char>.Empty;
 
-            var line = _line.Slice(_lastIndex);
+            line = _line.Slice(_lastIndex);
             var i = line.IndexOf(delimiter);
             if (i == -1) {
                 _lastIndex += line.Length;
@@ -111,11 +114,12 @@ namespace Nucs.Extensions {
         }
 
         public void Skip(int delimiters, char delimiter = ',') {
+            var line = _line;
             for (int j = 0; j < delimiters; j++) {
-                if (_lastIndex >= _line.Length)
+                if (_lastIndex >= line.Length)
                     break;
 
-                var line = _line.Slice(_lastIndex);
+                line = line.Slice(_lastIndex);
                 var i = line.IndexOf(delimiter);
                 if (i == -1) {
                     _lastIndex += line.Length;
@@ -127,11 +131,12 @@ namespace Nucs.Extensions {
         }
 
         public void Skip(int delimiters, string delimiter) {
+            var line = _line;
             for (int j = 0; j < delimiters; j++) {
-                if (_lastIndex >= _line.Length)
+                if (_lastIndex >= line.Length)
                     break;
 
-                var line = _line.Slice(_lastIndex);
+                line = line.Slice(_lastIndex);
                 var i = line.IndexOf(delimiter);
                 if (i == -1) {
                     _lastIndex += line.Length;

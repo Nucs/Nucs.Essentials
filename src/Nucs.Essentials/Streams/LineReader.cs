@@ -92,11 +92,11 @@ namespace Nucs.Extensions {
         }
 
         public unsafe ReadOnlySpan<char> Next(string delimiter) {
-            ref var line = ref MemoryMarshal.GetReference(_line);
             var length = _line.Length;
             if (length == 0)
                 return default;
-
+            
+            ref var line = ref MemoryMarshal.GetReference(_line);
             var delLength = delimiter.Length;
             int nextDelimiterIndex = SpanStringHelper.IndexOf(ref line, length, ref Unsafe.AsRef(delimiter.GetPinnableReference()), delLength);
             if (nextDelimiterIndex == -1) {
@@ -112,6 +112,7 @@ namespace Nucs.Extensions {
             var length = _line.Length;
             if (length == 0)
                 return;
+            
             ref var line = ref MemoryMarshal.GetReference(_line);
             for (int j = delimiters - 1; j >= 0 && length > 0; j--) {
                 var i = SpanStringHelper.IndexOf(ref line, delimiter, length);

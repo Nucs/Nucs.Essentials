@@ -1,25 +1,25 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Nucs.Text;
 
 namespace Nucs.Extensions {
     /// <summary>
     ///     Performantly does a string split based on new line characters that's also cross platform and resolved during construction or passed as a parameter.
     /// </summary>
     public ref struct RowReader {
-
-        private readonly ReadOnlySpan<char> _line;
-        private int _lastIndex;
-
+        private ReadOnlySpan<char> _line;
         private readonly ReadOnlySpan<char> _delimiter;
 
         /// <summary>
         ///     The delimiter resolved during construction
         /// </summary>
         public LineDelimiter ResolvedDelimiter => _delimiter.Length == 2 ? LineDelimiter.CRLF : _delimiter[0] == '\r' ? LineDelimiter.CR : LineDelimiter.LF;
-
+        public RowReader(ReadOnlyMemory<char> memory) : this(memory.Span) { }
+        public RowReader(ReadOnlyMemory<char> memory, LineDelimiter delimiter) : this(memory.Span, delimiter) { }
 
         public RowReader(ReadOnlySpan<char> span) {
             _line = span;
-            _lastIndex = 0;
 
             //identify delimiter type
             int len = span.Length;
@@ -46,55 +46,57 @@ namespace Nucs.Extensions {
 
         public RowReader(ReadOnlySpan<char> span, LineDelimiter delimiter) {
             _line = span;
-            _lastIndex = 0;
             //identify delimiter type
             _delimiter = delimiter.AsString();
         }
 
         public RowReader(string text) : this((ReadOnlySpan<char>) text) { }
+        public RowReader(string text, LineDelimiter delimiter) : this((ReadOnlySpan<char>) text, delimiter) { }
 
-        public bool HasNext => _lastIndex < _line.Length;
-
-        public int PointerIndex {
-            get => _lastIndex;
-            set => _lastIndex = value;
-        }
-
-        public void Reset() {
-            _lastIndex = 0;
-        }
-
+        public bool HasNext => _line.Length != 0;
 
         public ReadOnlySpan<char> Next() {
-            if (_lastIndex >= _line.Length)
-                return ReadOnlySpan<char>.Empty;
+            var length = _line.Length;
+            if (length == 0)
+                return default;
 
-            var line = _line.Slice(_lastIndex);
-            var i = line.IndexOf(_delimiter);
-            if (i == -1) {
-                _lastIndex += line.Length;
-                return line;
+            ref var line = ref MemoryMarshal.GetReference(_line);
+            var delLength = _delimiter.Length;
+            var nextDelimiterIndex = delLength == 1
+                ? SpanStringHelper.IndexOf(ref line, MemoryMarshal.GetReference(_delimiter), length)
+                : SpanStringHelper.IndexOf(ref line, length, ref MemoryMarshal.GetReference(_delimiter), delLength);
+
+            if (nextDelimiterIndex == -1) {
+                _line = default;
+                return MemoryMarshal.CreateReadOnlySpan(ref line, length);
             }
 
-            var newSlice = line.Slice(0, i);
-            _lastIndex += i + _delimiter.Length;
-            return newSlice;
+            _line = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref line, (nint) nextDelimiterIndex + delLength), length - nextDelimiterIndex - delLength);
+            return MemoryMarshal.CreateReadOnlySpan(ref line, nextDelimiterIndex);
         }
 
         public void Skip(int rows) {
-            for (int j = 0; j < rows; j++) {
-                if (_lastIndex >= _line.Length)
-                    break;
+            var length = _line.Length;
+            if (length == 0)
+                return;
 
-                var line = _line.Slice(_lastIndex);
-                var i = line.IndexOf(_delimiter);
+            ref var del = ref MemoryMarshal.GetReference(_delimiter);
+            ref var line = ref MemoryMarshal.GetReference(_line);
+            var delLength = _delimiter.Length;
+            for (int j = rows - 1; j >= 0 && length > 0; j--) {
+                var i = delLength == 1
+                    ? SpanStringHelper.IndexOf(ref line, del, length)
+                    : SpanStringHelper.IndexOf(ref line, length, ref del, delLength);
                 if (i == -1) {
-                    _lastIndex += line.Length;
-                    break;
+                    _line = default;
+                    return;
                 }
 
-                _lastIndex += i + _delimiter.Length;
+                line = ref Unsafe.Add(ref line, (nint) i + delLength);
+                length -= i + delLength;
             }
+
+            _line = length == 0 ? default : MemoryMarshal.CreateReadOnlySpan(ref line, length);
         }
 
         public static implicit operator RowReader(ReadOnlySpan<char> text) {

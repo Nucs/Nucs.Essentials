@@ -27,14 +27,14 @@ namespace Nucs.Essentials.UnitTests {
     public class LineReaderTests {
         [Fact]
         public void ReadStringDelimited2() {
-            var row = new LineReader("aaa,,aa,,aaaa,,aaaa,,aa");
+            var row = new LineReader("abc,,ab,,abcd,,abcd,,ab");
             row.CountItems(",,").Should().Be(5);
             row.HasNext.Should().BeTrue();
-            row.Next(",,").ToString().Should().Be("aaa");
-            row.Next(",,").ToString().Should().Be("aa");
-            row.Next(",,").ToString().Should().Be("aaaa");
-            row.Next(",,").ToString().Should().Be("aaaa");
-            row.Next(",,").ToString().Should().Be("aa");
+            row.Next(",,").ToString().Should().Be("abc");
+            row.Next(",,").ToString().Should().Be("ab");
+            row.Next(",,").ToString().Should().Be("abcd");
+            row.Next(",,").ToString().Should().Be("abcd");
+            row.Next(",,").ToString().Should().Be("ab");
             row.HasNext.Should().BeFalse();
             row.Next(",,").IsEmpty.Should().BeTrue();
             row.HasNext.Should().BeFalse();
@@ -42,29 +42,106 @@ namespace Nucs.Essentials.UnitTests {
 
         [Fact]
         public void ReadStringDelimited() {
-            var row = new LineReader("aaa,aa,aaaa,aaaa,aa");
-            row.CountItems(",").Should().Be(5);
+            var row = new LineReader("abc,,ab,,abcd,,abcd,,ab");
+            row.CountItems(",,").Should().Be(5);
+            row.CountItems(",").Should().Be(9);
             row.HasNext.Should().BeTrue();
-            row.Next(",").ToString().Should().Be("aaa");
-            row.Next(",").ToString().Should().Be("aa");
-            row.Next(",").ToString().Should().Be("aaaa");
-            row.Next(",").ToString().Should().Be("aaaa");
-            row.Next(",").ToString().Should().Be("aa");
+            row.Next(",,").ToString().Should().Be("abc");
+            row.Next(",,").ToString().Should().Be("ab");
+            row.Next(",,").ToString().Should().Be("abcd");
+            row.Next(",,").ToString().Should().Be("abcd");
+            row.Next(",,").ToString().Should().Be("ab");
             row.HasNext.Should().BeFalse();
-            row.Next(",").IsEmpty.Should().BeTrue();
+            row.Next(",,").IsEmpty.Should().BeTrue();
+            row.HasNext.Should().BeFalse();
+        }
+
+        [Fact]
+        public void SkipStringDelimited() {
+            var row = new LineReader("abc,,ab,,abcd,,abcd,,ab");
+            row.CountItems(",,").Should().Be(5);
+            row.HasNext.Should().BeTrue();
+            row.Next(",,").ToString().Should().Be("abc");
+            row.Skip(1, ",,");
+            row.Next(",,").ToString().Should().Be("abcd");
+            row.Skip(1, ",,");
+            row.Next(",,").ToString().Should().Be("ab");
+            row.Skip(1, ",,");
+            row.Skip(1, ",,");
+            row.HasNext.Should().BeFalse();
+            row.Next(",,").IsEmpty.Should().BeTrue();
+            row.HasNext.Should().BeFalse();
+
+            row = new LineReader("abc,,ab,,abcd,,abcd,,ab");
+            row.HasNext.Should().BeTrue();
+            row.Skip(1, ",,");
+            row.Next(",,").ToString().Should().Be("ab");
+            row.Skip(1, ",,");
+            row.Next(",,").ToString().Should().Be("abcd");
+            row.Skip(1, ",,");
+            row.Skip(10, ",,");
+            row.HasNext.Should().BeFalse();
+            row.Next(",,").IsEmpty.Should().BeTrue();
+            row.HasNext.Should().BeFalse();
+
+            row = new LineReader("abc,,ab,,abcd,,abcd,,ab");
+            row.HasNext.Should().BeTrue();
+            row.Skip(3, ",,");
+            row.Next(",,").ToString().Should().Be("abcd");
+            row.Next(",,").ToString().Should().Be("ab");
+            row.HasNext.Should().BeFalse();
+            row.Next(",,").IsEmpty.Should().BeTrue();
+            row.HasNext.Should().BeFalse();
+        }
+
+        [Fact]
+        public void SkipCharDelimited() {
+            var row = new LineReader("abc,ab,abcd,abcd,ab");
+            row.CountItems(',').Should().Be(5);
+            row.HasNext.Should().BeTrue();
+            row.Next(',').ToString().Should().Be("abc");
+            row.Skip(1, ',');
+            row.Next(',').ToString().Should().Be("abcd");
+            row.Skip(1, ',');
+            row.Next(',').ToString().Should().Be("ab");
+            row.Skip(1, ',');
+            row.Skip(1, ',');
+            row.HasNext.Should().BeFalse();
+            row.Next(',').IsEmpty.Should().BeTrue();
+            row.HasNext.Should().BeFalse();
+
+            row = new LineReader("abc,ab,abcd,abcd,ab");
+            row.HasNext.Should().BeTrue();
+            row.Skip(1, ',');
+            row.Next(',').ToString().Should().Be("ab");
+            row.Skip(1, ',');
+            row.Next(',').ToString().Should().Be("abcd");
+            row.Skip(1, ',');
+            row.Skip(10, ',');
+            row.HasNext.Should().BeFalse();
+            row.Next(',').IsEmpty.Should().BeTrue();
+            row.HasNext.Should().BeFalse();
+
+            row = new LineReader("abc,ab,abcd,abcd,ab");
+            row.HasNext.Should().BeTrue();
+            row.Skip(3, ',');
+            row.Next(',').ToString().Should().Be("abcd");
+            row.Next(',').ToString().Should().Be("ab");
+            row.HasNext.Should().BeFalse();
+            row.Next(',').IsEmpty.Should().BeTrue();
             row.HasNext.Should().BeFalse();
         }
 
         [Fact]
         public void ReadCharDelimited() {
-            var row = new LineReader("aaa,aa,aaaa,aaaa,aa");
+            var row = new LineReader("abc,ab,abcd,abcd,ab");
             row.CountItems(',').Should().Be(5);
             row.HasNext.Should().BeTrue();
-            row.Next(',').ToString().Should().Be("aaa");
-            row.Next(',').ToString().Should().Be("aa");
-            row.Next(',').ToString().Should().Be("aaaa");
-            row.Next(',').ToString().Should().Be("aaaa");
-            row.Next(',').ToString().Should().Be("aa");
+            row.Next(',').ToString().Should().Be("abc");
+            row.Next(',').ToString().Should().Be("ab");
+            row.Next(',').ToString().Should().Be("abcd");
+            row.Next(',').ToString().Should().Be("abcd");
+            row.Next(',').ToString().Should().Be("ab");
             row.HasNext.Should().BeFalse();
             row.Next(',').IsEmpty.Should().BeTrue();
             row.HasNext.Should().BeFalse();

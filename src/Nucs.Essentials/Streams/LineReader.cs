@@ -1,29 +1,29 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Nucs.Text;
 
 namespace Nucs.Extensions {
     /// <summary>
     ///     Performantly does a string split by a delimiter without copying
     /// </summary>
     public ref struct LineReader {
-        private readonly ReadOnlySpan<char> _line;
-        private int _lastIndex;
+        private ReadOnlySpan<char> _line;
 
         public LineReader(ReadOnlySpan<char> span) {
             _line = span;
-            _lastIndex = 0;
         }
 
         public LineReader(string text) {
             _line = text;
-            _lastIndex = 0;
         }
 
-        public bool HasNext => _lastIndex < _line.Length;
-
-        public int PointerIndex {
-            get => _lastIndex;
-            set => _lastIndex = value;
+        public LineReader(ReadOnlyMemory<char> text) {
+            _line = text.Span;
         }
+
+        public bool HasNext => _line.Length != 0;
 
         /// <returns>Number of items in this row</returns>
         public readonly int CountItems(char delimiter = ',') {
@@ -75,76 +75,78 @@ namespace Nucs.Extensions {
             return items;
         }
 
-        public void Reset() {
-            _lastIndex = 0;
-        }
-
         public ReadOnlySpan<char> Next(char delimiter = ',') {
-            var line = _line;
-            if (_lastIndex >= line.Length)
-                return ReadOnlySpan<char>.Empty;
+            ref var line = ref MemoryMarshal.GetReference(_line);
+            var length = _line.Length;
+            if (length == 0)
+                return default;
 
-            line = line.Slice(_lastIndex);
-            var i = line.IndexOf(delimiter);
-            if (i == -1) {
-                _lastIndex += line.Length;
-                return line;
+            var nextDelimiterIndex = SpanStringHelper.IndexOf(ref line, delimiter, length);
+            if (nextDelimiterIndex == -1) {
+                _line = default;
+                return MemoryMarshal.CreateReadOnlySpan(ref line, length);
             }
 
-            var newSlice = line.Slice(0, i);
-            _lastIndex += i + 1;
-            return newSlice;
+            _line = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref line, (nint) nextDelimiterIndex + 1), length - nextDelimiterIndex - 1);
+            return MemoryMarshal.CreateReadOnlySpan(ref line, nextDelimiterIndex);
         }
 
-        public ReadOnlySpan<char> Next(string delimiter) {
-            var line = _line;
-            if (_lastIndex >= line.Length)
-                return ReadOnlySpan<char>.Empty;
+        public unsafe ReadOnlySpan<char> Next(string delimiter) {
+            ref var line = ref MemoryMarshal.GetReference(_line);
+            var length = _line.Length;
+            if (length == 0)
+                return default;
 
-            line = _line.Slice(_lastIndex);
-            var i = line.IndexOf(delimiter);
-            if (i == -1) {
-                _lastIndex += line.Length;
-                return line;
+            var delLength = delimiter.Length;
+            int nextDelimiterIndex = SpanStringHelper.IndexOf(ref line, length, ref Unsafe.AsRef(delimiter.GetPinnableReference()), delLength);
+            if (nextDelimiterIndex == -1) {
+                _line = default;
+                return MemoryMarshal.CreateReadOnlySpan(ref line, length);
             }
 
-            var newSlice = line.Slice(0, i);
-            _lastIndex += i + delimiter.Length;
-            return newSlice;
+            _line = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref line, (nint) nextDelimiterIndex + delLength), length - nextDelimiterIndex - delLength);
+            return MemoryMarshal.CreateReadOnlySpan(ref line, nextDelimiterIndex);
         }
 
         public void Skip(int delimiters, char delimiter = ',') {
-            var line = _line;
-            for (int j = 0; j < delimiters; j++) {
-                if (_lastIndex >= line.Length)
-                    break;
-
-                line = line.Slice(_lastIndex);
-                var i = line.IndexOf(delimiter);
+            var length = _line.Length;
+            if (length == 0)
+                return;
+            ref var line = ref MemoryMarshal.GetReference(_line);
+            for (int j = delimiters - 1; j >= 0 && length > 0; j--) {
+                var i = SpanStringHelper.IndexOf(ref line, delimiter, length);
                 if (i == -1) {
-                    _lastIndex += line.Length;
-                    break;
+                    _line = default;
+                    return;
                 }
 
-                _lastIndex += i + 1;
+                line = ref Unsafe.Add(ref line, (nint) i + 1);
+                length -= i + 1;
             }
+
+            _line = length == 0 ? default : MemoryMarshal.CreateReadOnlySpan(ref line, length);
         }
 
         public void Skip(int delimiters, string delimiter) {
-            var line = _line;
-            for (int j = 0; j < delimiters; j++) {
-                if (_lastIndex >= line.Length)
-                    break;
+            var length = _line.Length;
+            if (length == 0)
+                return;
 
-                line = line.Slice(_lastIndex);
-                var i = line.IndexOf(delimiter);
+            ref var line = ref MemoryMarshal.GetReference(_line);
+            var delLength = delimiter.Length;
+            ref var del = ref Unsafe.AsRef(delimiter.GetPinnableReference());
+            for (int j = delimiters - 1; j >= 0 && length > 0; j--) {
+                var i = SpanStringHelper.IndexOf(ref line, length, ref del, delLength);
                 if (i == -1) {
-                    _lastIndex += line.Length;
-                    break;
+                    _line = default;
+                    return;
                 }
 
-                _lastIndex += i + delimiter.Length;
+                line = ref Unsafe.Add(ref line, (nint) i + delLength);
+                length -= i + delLength;
             }
+
+            _line = length == 0 ? default : MemoryMarshal.CreateReadOnlySpan(ref line, length);
         }
 
         public static implicit operator LineReader(ReadOnlySpan<char> text) {

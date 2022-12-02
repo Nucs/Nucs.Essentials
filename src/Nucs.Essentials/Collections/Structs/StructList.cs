@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Nucs.Collections.Layouts;
 using Nucs.Exceptions;
 
@@ -1060,6 +1061,97 @@ namespace Nucs.Collections.Structs {
             MemoryExtensions.Sort(keys, AsSpan(), new ComparisonComparer<TKey>(comparison));
         }
 
+        /// <summary>
+        /// Searches an entire sorted <see cref="Span{T}"/> for the specified <paramref name="value"/>
+        /// using the specified <typeparamref name="TComparer"/> generic type.
+        /// </summary>
+        /// <typeparam name="T">The element type of the span.</typeparam>
+        /// <param name="span">The sorted <see cref="Span{T}"/> to search.</param>
+        /// <param name="value">The object to locate. The value can be null for reference types.</param>
+        /// /// <returns>
+        /// The zero-based index of <paramref name="value"/> in the sorted <paramref name="span"/>,
+        /// if <paramref name="value"/> is found; otherwise, a negative number that is the bitwise complement
+        /// of the index of the next element that is larger than <paramref name="value"/> or, if there is
+        /// no larger element, the bitwise complement of <see cref="Span{T}.Length"/>.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name = "comparer" /> is <see langword="null"/> .
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int BinarySearch<TOrderBy>(TOrderBy value, OrderByDelegate<T, TOrderBy> orderBySelector) where TOrderBy : IComparable<TOrderBy> {
+            return SpanHelper.BinarySearch<T, TOrderBy>(ref MemoryMarshal.GetReference(ReadOnlySpan), Length, value, orderBySelector);
+        }
+
+        /// <summary>
+        /// Searches an entire sorted <see cref="Span{T}"/> for the specified <paramref name="value"/>
+        /// using the specified <typeparamref name="TComparer"/> generic type.
+        /// </summary>
+        /// <typeparam name="T">The element type of the span.</typeparam>
+        /// <typeparam name="TComparer">The specific type of <see cref="IComparer{T}"/>.</typeparam>
+        /// <param name="span">The sorted <see cref="Span{T}"/> to search.</param>
+        /// <param name="value">The object to locate. The value can be null for reference types.</param>
+        /// <param name="comparer">The <typeparamref name="TComparer"/> to use when comparing.</param>
+        /// /// <returns>
+        /// The zero-based index of <paramref name="value"/> in the sorted <paramref name="span"/>,
+        /// if <paramref name="value"/> is found; otherwise, a negative number that is the bitwise complement
+        /// of the index of the next element that is larger than <paramref name="value"/> or, if there is
+        /// no larger element, the bitwise complement of <see cref="Span{T}.Length"/>.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name = "comparer" /> is <see langword="null"/> .
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int BinarySearch<TOrderBy, TComparer>(TOrderBy value, TComparer comparer, OrderByDelegate<T, TOrderBy> orderBySelector)
+            where TComparer : IComparer<TOrderBy>
+            where TOrderBy : IComparable<TOrderBy> {
+            return SpanHelper.BinarySearch<T, TOrderBy, TComparer>(ref MemoryMarshal.GetReference(ReadOnlySpan), Length, value, orderBySelector, comparer);
+        }
+
+        /// <summary>
+        /// Searches an entire sorted <see cref="Span{T}"/> for the specified <paramref name="value"/>
+        /// using the specified <typeparamref name="TComparer"/> generic type.
+        /// </summary>
+        /// <typeparam name="T">The element type of the span.</typeparam>
+        /// <typeparam name="TComparer">The specific type of <see cref="IComparer{T}"/>.</typeparam>
+        /// <param name="span">The sorted <see cref="Span{T}"/> to search.</param>
+        /// <param name="value">The object to locate. The value can be null for reference types.</param>
+        /// <param name="comparer">The <typeparamref name="TComparer"/> to use when comparing.</param>
+        /// /// <returns>
+        /// The zero-based index of <paramref name="value"/> in the sorted <paramref name="span"/>,
+        /// if <paramref name="value"/> is found; otherwise, a negative number that is the bitwise complement
+        /// of the index of the next element that is larger than <paramref name="value"/> or, if there is
+        /// no larger element, the bitwise complement of <see cref="Span{T}.Length"/>.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name = "comparer" /> is <see langword="null"/> .
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int BinarySearch<TComparer>(T value, TComparer comparer) where TComparer : IComparer<T> {
+            return MemoryExtensions.BinarySearch(ReadOnlySpan, value, comparer);
+        }
+
+        /// <summary>
+        /// Searches an entire sorted <see cref="ReadOnlySpan{T}"/> for a value
+        /// using the specified <typeparamref name="TComparable"/> generic type.
+        /// </summary>
+        /// <typeparam name="T">The element type of the span.</typeparam>
+        /// <typeparam name="TComparable">The specific type of <see cref="IComparable{T}"/>.</typeparam>
+        /// <param name="span">The sorted <see cref="ReadOnlySpan{T}"/> to search.</param>
+        /// <param name="comparable">The <typeparamref name="TComparable"/> to use when comparing.</param>
+        /// <returns>
+        /// The zero-based index of <paramref name="comparable"/> in the sorted <paramref name="span"/>,
+        /// if <paramref name="comparable"/> is found; otherwise, a negative number that is the bitwise complement
+        /// of the index of the next element that is larger than <paramref name="comparable"/> or, if there is
+        /// no larger element, the bitwise complement of <see cref="ReadOnlySpan{T}.Length"/>.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name = "comparable" /> is <see langword="null"/> .
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int BinarySearch<TComparable>(TComparable comparable) where TComparable : IComparable<T> {
+            return MemoryExtensions.BinarySearch<T, TComparable>(ReadOnlySpan, comparable);
+        }
+
         public class ComparisonComparer<V> : IComparer<V> {
             private readonly Comparison<V> Comparison;
 
@@ -1995,6 +2087,7 @@ namespace Nucs.Collections.Structs {
         #region Implementation of IListView<T>
 
         public readonly Span<T> Span => new Span<T>(_arr, 0, _count);
+        public readonly ReadOnlySpan<T> ReadOnlySpan => new ReadOnlySpan<T>(_arr, 0, _count);
 
         public readonly ref T GetItem(int index) {
             return ref _arr[index];

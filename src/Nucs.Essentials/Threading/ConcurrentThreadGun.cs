@@ -84,6 +84,23 @@ public class ConcurrentThreadGun : IDisposable {
     }
 
     [DebuggerHidden]
+    public static Task RunDiverseAsync(int threadCount, params ConcurrentThreadGunDelegate[] workloads) {
+        if (workloads == null) throw new ArgumentNullException(nameof(workloads));
+        if (workloads.Length == 0) throw new ArgumentException("Value cannot be an empty collection.", nameof(workloads));
+        if (threadCount <= 0) throw new ArgumentOutOfRangeException(nameof(threadCount));
+
+        if (threadCount != workloads.Length) {
+            if (threadCount % (decimal) workloads.Length != 0) {
+                throw new ArgumentException($"Diverse thread count ({threadCount}) must be divisible by workloads count ({workloads.Length}).");
+            }
+
+            workloads = Enumerable.Repeat(workloads, threadCount / workloads.Length).SelectMany(x => x).ToArray();
+        }
+
+        return new ConcurrentThreadGun(threadCount).RunAsync(workloads);
+    }
+
+    [DebuggerHidden]
     public static Task RunAsync(int threadCount, ConcurrentThreadGunDelegate workload, Action<ConcurrentThreadGun> postRun) {
         if (workload == null) throw new ArgumentNullException(nameof(workload));
         if (postRun == null) throw new ArgumentNullException(nameof(postRun));

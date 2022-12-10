@@ -16,8 +16,8 @@
         <PackageLicenseUrl>https://choosealicense.com/licenses/mit/</PackageLicenseUrl>
         <PackageTags>bayes,bayesian,optimization,skopt,nucs,elibelash</PackageTags>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <PackageProjectUrl>https://github.com/Nucs/Nucs.Essentials</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/Nucs/Nucs.Essentials</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/Nucs/Nucs.Essentials/tree/main/src/Nucs.Optimization</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Nucs/Nucs.Essentials/tree/main/src/Nucs.Optimization</RepositoryUrl>
         <PackageVersion>1.0.0</PackageVersion>
         <PackageReleaseNotes></PackageReleaseNotes>
     </PropertyGroup>

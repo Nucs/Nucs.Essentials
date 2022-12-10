@@ -38,7 +38,6 @@ public class PyBasyesianOptimization<TParams> : PyOptimization<TParams> where TP
     public (double Score, TParams Parameters) Search(int n_calls, int n_random_starts, PyBasyesianOptimization.InitialPointGenerator initial_point_generator = PyBasyesianOptimization.InitialPointGenerator.random,
                                                      PyBasyesianOptimization.AcqFunc acq_func = PyBasyesianOptimization.AcqFunc.gp_hedge, PyBasyesianOptimization.AcqOptimizer acq_optimizer = PyBasyesianOptimization.AcqOptimizer.lbfgs,
                                                      int? random_state = 0, int n_points = 10000, int n_restarts_optimizer = 5, double xi = 0.01d, double kappa = 1.96d, bool verbose = true) {
-        //var aa = PythonEngine.Eval("a(b.asManaged())", globals: Py.kw("a", scoreMethod, "b", netdict(Py.kw("Seed", 1, "Categories", "A", "NumericalCategories", 1, "UseMethod", true, "AnEnum", SomeEnum.A, "AnEnumWithValues", SomeEnum.A, "Ignored", true))));
         using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
         using dynamic np = Python.Runtime.PyModule.Import("numpy");
         var result = skopt.gp_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls, n_random_starts: n_random_starts, random_state: 0,

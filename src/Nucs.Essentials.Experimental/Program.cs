@@ -16,4 +16,5 @@ using var py = Py.GIL();
 
 var opt = new PyBasyesianOptimization<Parameters>(ScoreFunction);
 (double Score, Parameters Parameters) = opt.Search(n_calls: 15, n_random_starts: 10, verbose: false);
+(Score, Parameters) = opt.Search(n_calls: 15, n_random_starts: 10, verbose: false);
 Console.WriteLine($"Best Score: {Score} for {Parameters}");

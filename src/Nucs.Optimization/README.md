@@ -5,9 +5,6 @@ using Python.Runtime;
 using System.Runtime.Serialization;
 using Nucs.Optimization.Attributes;
 
-
-
-
 //define parameters in a record/class
 public record Parameters {
     [Range<int>(0, int.MaxValue)]

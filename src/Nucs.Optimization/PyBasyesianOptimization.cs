@@ -37,7 +37,7 @@ public class PyBasyesianOptimization<TParams> : PyOptimization<TParams> where TP
 
     public (double Score, TParams Parameters) Search(int n_calls, int n_random_starts, PyBasyesianOptimization.InitialPointGenerator initial_point_generator = PyBasyesianOptimization.InitialPointGenerator.random,
                                                      PyBasyesianOptimization.AcqFunc acq_func = PyBasyesianOptimization.AcqFunc.gp_hedge, PyBasyesianOptimization.AcqOptimizer acq_optimizer = PyBasyesianOptimization.AcqOptimizer.lbfgs,
-                                                     int? random_state = null, int n_points = 10000, int n_restarts_optimizer = 5, double xi = 0.01d, double kappa = 1.96d, bool verbose = true) {
+                                                     int? random_state = null, int n_points = 10000, int n_restarts_optimizer = 5, double xi = 0.01d, double kappa = 1.96d, bool verbose = false) {
         using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
         using dynamic np = Python.Runtime.PyModule.Import("numpy");
         var result = skopt.gp_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls, n_random_starts: n_random_starts,
@@ -52,7 +52,7 @@ public class PyBasyesianOptimization<TParams> : PyOptimization<TParams> where TP
         List<Tuple<string, object>> values = (List<Tuple<string, object>>) _helper.unbox_params(ParametersAnalyzer<TParams>.ParameterNames, scoreParameters[best])
                                                                                   .AsManagedObject(typeof(List<Tuple<string, object>>));
         var bestParameters = ParametersAnalyzer<TParams>.Populate(values);
-        
+
         //adjust score polarity to the goal
         double score = (double) scores[best] * (_maximize ? -1 : 1);
 

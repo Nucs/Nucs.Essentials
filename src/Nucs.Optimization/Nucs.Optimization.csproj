@@ -29,6 +29,7 @@
 
     <ItemGroup>
       <EmbeddedResource Include="opt_helpers.py" />
+      <EmbeddedResource Include="forest.py" />
     </ItemGroup>
 
     <ItemGroup>

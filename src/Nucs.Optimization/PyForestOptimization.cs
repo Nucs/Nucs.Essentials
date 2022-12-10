@@ -111,6 +111,8 @@ public class PyForestOptimization<TParams> : PyOptimization<TParams> where TPara
             returns[i] = (Score: score, Parameters: bestParameters);
         }
 
+        Array.Sort(returns, (tuple, valueTuple) => valueTuple.Score.CompareTo(tuple.Score));
+
         //return the best score and the parameters
         return returns;
     }

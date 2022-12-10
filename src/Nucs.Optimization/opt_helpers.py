@@ -1,5 +1,3 @@
-from skopt import space
-import skopt
 import json
 import clr
 from System.Collections.Generic import SortedDictionary
@@ -22,10 +20,6 @@ def scoreWrapper(func, names, maximize):
 def unbox_params(names, result):
     tupleType = System.Tuple[System.String, System.Object]
     listType = System.Collections.Generic.List[tupleType]
-
-    # if hasattr(result[0], 'dtype'):
-    #     result = result.tolist() # [item.item() for item in result]
-
     unboxed = listType(len(names))
     for key, value in zip(names, result):
         if not isinstance(key, str):
@@ -41,10 +35,6 @@ def unbox_params(names, result):
 
 def unbox_params_dictionary(names, result):
     managedDict = SortedDictionary[System.String, System.Object]()
-
-    # if hasattr(result[0], 'dtype'):
-    #     result = result.tolist() # [item.item() for item in result]
-
     for key, value in zip(names, result):
         if not isinstance(key, str):
             key = str(key)

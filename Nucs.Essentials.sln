@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Essentials.Experimenta
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Optimization", "src\Nucs.Optimization\Nucs.Optimization.csproj", "{D165C794-3DA8-403D-B2D5-1D9241F96063}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Optimization.UnitTests", "tests\Nucs.Optimization.UnitTests\Nucs.Optimization.UnitTests.csproj", "{B258C3CD-7962-43FC-89E4-C53B1A14862A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,6 +50,10 @@ Global
 		{D165C794-3DA8-403D-B2D5-1D9241F96063}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D165C794-3DA8-403D-B2D5-1D9241F96063}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D165C794-3DA8-403D-B2D5-1D9241F96063}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B258C3CD-7962-43FC-89E4-C53B1A14862A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B258C3CD-7962-43FC-89E4-C53B1A14862A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B258C3CD-7962-43FC-89E4-C53B1A14862A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B258C3CD-7962-43FC-89E4-C53B1A14862A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -56,6 +62,7 @@ Global
 		{34C0FACD-F3D9-400C-8945-554DD6B0819A} = {6ED356A7-8B47-4613-AD01-C85CF28491BD}
 		{65C1ABD6-587B-467F-A9CC-0899AC6250F3} = {664D406C-2F83-48F0-BFC3-408D5CB53C65}
 		{AF0FB53B-5D1E-4748-812D-74D15E318C72} = {315B1620-0173-4587-82E3-8DBD846374E3}
+		{B258C3CD-7962-43FC-89E4-C53B1A14862A} = {664D406C-2F83-48F0-BFC3-408D5CB53C65}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3CB609D9-5D54-4C11-A371-DAAC8B74E430}

@@ -3,11 +3,10 @@ namespace Nucs.Optimization.Analayzer;
 public abstract class CategoricalParameterType : ParameterType {
     public int UpperThreshold;
     public int LowerThreshold;
-    public int Difference; //aka sigma
 
     public abstract object[] ObjectValues { get; }
 
-    public CategoricalParameterType(string name, TypeCode type) : base(name, type) { }
+    protected CategoricalParameterType(string name, TypeCode type) : base(name, type) { }
 }
 
 public class CategoricalParameterType<T> : CategoricalParameterType {
@@ -35,7 +34,6 @@ public class CategoricalParameterType<T> : CategoricalParameterType {
         Values = values;
         LowerThreshold = 0;
         UpperThreshold = Values.Length - 1;
-        Difference = Values.Length - 1;
         IsNumerical = type switch {
             TypeCode.UInt16 => true,
             TypeCode.UInt32 => true,

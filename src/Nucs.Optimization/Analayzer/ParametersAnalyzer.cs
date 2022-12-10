@@ -13,8 +13,9 @@ public static class ParametersAnalyzer<TParams> where TParams : class, new() {
 
     #if DEBUG
     public static void Initialize() {
-        #else
+    #else
     public static void Initialize() { }
+
     static ParametersAnalyzer() {
         #endif
 
@@ -114,7 +115,29 @@ public static class ParametersAnalyzer<TParams> where TParams : class, new() {
     /// <summary>
     ///     Applies sequential <see cref="values"/> to <see cref="TParams"/> based on <see cref="Parameters"/> order.
     /// </summary>
-    public static void Apply(TParams parameters, List<Tuple<string, object>> values) {
+    public static void Apply(TParams parameters, List<Tuple<string, object>> values, bool sortFirst = false) {
+        if (sortFirst)
+            values.Sort((l, r) => Array.IndexOf(ParameterNames, l.Item1).CompareTo(Array.IndexOf(ParameterNames, r.Item1)));
+
+        for (var i = 0; i < values.Count; i++) {
+            var (name, value) = values[i];
+            var parameter = ParameterValues[i];
+
+            //test sequential order
+            Debug.Assert(object.ReferenceEquals(Parameters[name], parameter));
+
+            parameter.Assign(parameters, value);
+        }
+    }
+
+
+    /// <summary>
+    ///     Applies sequential <see cref="values"/> to <see cref="TParams"/> based on <see cref="Parameters"/> order.
+    /// </summary>
+    public static void Apply(TParams parameters, List<(string Name, object Value)> values, bool sortFirst = false) {
+        if (sortFirst)
+            values.Sort((l, r) => Array.IndexOf(ParameterNames, l.Item1).CompareTo(Array.IndexOf(ParameterNames, r.Item1)));
+
         for (var i = 0; i < values.Count; i++) {
             var (name, value) = values[i];
             var parameter = ParameterValues[i];

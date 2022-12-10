@@ -8,9 +8,8 @@ namespace Nucs.Optimization.Analayzer;
 public abstract class NumericalParameterType : ParameterType {
     public double UpperThreshold;
     public double LowerThreshold;
-    public double Difference; //aka sigma
 
-    public NumericalParameterType(string name, TypeCode type) : base(name, type) { }
+    protected NumericalParameterType(string name, TypeCode type) : base(name, type) { }
 }
 
 public class NumericalParameterType<T> : NumericalParameterType where T : INumber<T>, IMinMaxValue<T> {
@@ -39,13 +38,6 @@ public class NumericalParameterType<T> : NumericalParameterType where T : INumbe
         AssignPointer = assignPointer;
         LowerThreshold = double.CreateChecked(lowerThreshold);
         UpperThreshold = double.CreateChecked(upperThreshold);
-        Difference = double.CreateChecked(upperThreshold - lowerThreshold);
-        IsFloating = type switch {
-            TypeCode.Double => true,
-            TypeCode.Single => true,
-            _               => false
-        };
-        IsNumerical = true;
     }
 
     public NumericalParameterType(string name, TypeCode type, Delegate assignPointer, RangeAttribute range)

@@ -15,9 +15,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Essentials.Benchmarks"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmark", "benchmark", "{315B1620-0173-4587-82E3-8DBD846374E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Essentials.Experimental", "Nucs.Essentials.Experimental\Nucs.Essentials.Experimental.csproj", "{BAB3962C-3EC8-4472-A4A9-4ECBBD8B9D7C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Essentials.Experimental", "src\Nucs.Essentials.Experimental\Nucs.Essentials.Experimental.csproj", "{BAB3962C-3EC8-4472-A4A9-4ECBBD8B9D7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Optimization", "Nucs.Optimization\Nucs.Optimization.csproj", "{D165C794-3DA8-403D-B2D5-1D9241F96063}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nucs.Optimization", "src\Nucs.Optimization\Nucs.Optimization.csproj", "{D165C794-3DA8-403D-B2D5-1D9241F96063}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

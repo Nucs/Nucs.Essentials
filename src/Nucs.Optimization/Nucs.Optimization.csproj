@@ -18,7 +18,7 @@
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/Nucs/Nucs.Essentials/tree/main/src/Nucs.Optimization</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Nucs/Nucs.Essentials/tree/main/src/Nucs.Optimization</RepositoryUrl>
-        <PackageVersion>1.0.0</PackageVersion>
+        <PackageVersion>1.1.0</PackageVersion>
         <PackageReleaseNotes></PackageReleaseNotes>
     </PropertyGroup>
     

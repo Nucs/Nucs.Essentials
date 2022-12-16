@@ -10,7 +10,8 @@ namespace Nucs.Optimization;
 /// </summary>
 /// <typeparam name="TParams"></typeparam>
 public abstract class PyOptimization<TParams> : IDisposable where TParams : class, new() {
-    protected readonly ScoreFunction _blackBoxScoreFunction;
+    protected readonly FileInfo? DumpResults;
+    protected readonly ScoreFunctionDelegate _blackBoxScoreFunction;
     protected readonly dynamic _helper;
     protected readonly PyList _searchSpace;
     protected readonly PyObject wrappedScoreMethod;
@@ -19,14 +20,15 @@ public abstract class PyOptimization<TParams> : IDisposable where TParams : clas
     /// <summary>
     ///     The score function that will be used to evaluate the parameters.
     /// </summary>
-    public delegate double ScoreFunction(TParams parameters);
+    public delegate double ScoreFunctionDelegate(TParams parameters);
 
-    protected PyOptimization(ScoreFunction blackBoxScoreFunction, bool maximize) {
+    protected PyOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize, FileInfo? dumpResults = null) {
         //ensure analyzer constructed
         ParametersAnalyzer<TParams>.Initialize();
 
         //process blackbox function and analyze attributes
         _blackBoxScoreFunction = blackBoxScoreFunction;
+        DumpResults = dumpResults;
         if (blackBoxScoreFunction.Method.GetCustomAttribute<MinimizeAttribute>() != null)
             maximize = false;
         else if (blackBoxScoreFunction.Method.GetCustomAttribute<MaximizeAttribute>() != null)
@@ -87,6 +89,24 @@ public abstract class PyOptimization<TParams> : IDisposable where TParams : clas
         }
     }
 
+    protected virtual void TryDumpResults(dynamic skopt, dynamic result) {
+        if (DumpResults != null) {
+            Directory.CreateDirectory(DumpResults.Directory!.FullName);
+            skopt.utils.dump(result, DumpResults.FullName, store_objective: false);
+        }
+    }
+
+    public static OptimizeResult<TParams> Load(FileInfo file, bool maximize) {
+        ParametersAnalyzer<TParams>.Initialize();
+
+        var path = file.FullName;
+        if (!Path.Exists(path))
+            throw new FileNotFoundException($"File {path} not found.");
+
+        using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
+        return new OptimizeResult<TParams>(skopt.utils.load(path), maximize);
+    }
+
     /// <summary>
     ///     Wraps the blackbox function to be used by the python optimizer.
     /// </summary>
@@ -105,5 +125,26 @@ public abstract class PyOptimization<TParams> : IDisposable where TParams : clas
     public void Dispose() {
         Dispose(true);
         GC.SuppressFinalize(this);
+    }
+}
+
+public class OptimizeResult<TParams> where TParams : class, new() {
+    public TParams Best { get; set; }
+    public double BestScore { get; set; }
+    public (TParams Parameters, double Score)[] Iterations { get; set; }
+
+    public OptimizeResult(dynamic result, bool maximize) {
+        using dynamic helper = PyModule.FromString("helper", EmbeddedResourceHelper.ReadEmbeddedResource("opt_helpers.py")!);
+        BestScore = ((double) result.fun) * (maximize ? -1 : 1);
+        Best = ParametersAnalyzer<TParams>.Populate((List<Tuple<string, object>>) helper.unbox_params(ParametersAnalyzer<TParams>.ParameterNames, result.x)
+                                                                                        .AsManagedObject(typeof(List<Tuple<string, object>>)));
+        var results = (int)result.func_vals.__len__();
+        Iterations = new (TParams Parameters, double Score)[results];
+        for (var i = 0; i < results; i++) {
+            var score = ((double) result.func_vals[i]) * (maximize ? -1 : 1);;
+            var parameters = ParametersAnalyzer<TParams>.Populate((List<Tuple<string, object>>) helper.unbox_params(ParametersAnalyzer<TParams>.ParameterNames, result.x_iters[i])
+                                                                                                      .AsManagedObject(typeof(List<Tuple<string, object>>)));
+            Iterations[i] = (parameters, score);
+        }
     }
 }

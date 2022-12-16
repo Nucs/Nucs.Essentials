@@ -42,7 +42,7 @@ public static class PyForestOptimization {
 public class PyForestOptimization<TParams> : PyOptimization<TParams> where TParams : class, new() {
     private readonly dynamic _forest;
 
-    public PyForestOptimization(ScoreFunction blackBoxScoreFunction, bool maximize = false) : base(blackBoxScoreFunction, maximize) {
+    public PyForestOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize = false, FileInfo? dumpResults = null) : base(blackBoxScoreFunction, maximize, dumpResults) {
         _forest = PyModule.FromString("forest", EmbeddedResourceHelper.ReadEmbeddedResource("forest.py")!);
     }
 
@@ -64,6 +64,9 @@ public class PyForestOptimization<TParams> : PyOptimization<TParams> where TPara
                                            n_points: n_points, xi: xi, kappa: kappa, verbose: verbose);
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
+        
+        TryDumpResults(skopt, result);
+        
         var best = np.argmin(scores);
 
         //unbox the best parameters
@@ -97,7 +100,17 @@ public class PyForestOptimization<TParams> : PyOptimization<TParams> where TPara
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
 
-        var best = np.argpartition(scores, topResults);
+        TryDumpResults(skopt, result);
+        
+        int scoresCount = (int) scores.shape[0];
+        dynamic best; //numpy array of indices
+        if (topResults < scoresCount) {
+            best = np.argpartition(scores, topResults);
+        } else {
+            best = np.arange(scoresCount);
+        }
+
+        topResults = Math.Min(topResults, scoresCount);
 
         var returns = new (double Score, TParams Parameters)[topResults];
         for (int i = 0; i < returns.Length; i++) {

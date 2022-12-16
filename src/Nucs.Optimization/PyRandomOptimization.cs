@@ -8,7 +8,7 @@ namespace Nucs.Optimization;
 /// </summary>
 /// <typeparam name="TParams">A class and new() for parameters</typeparam>
 public class PyRandomOptimization<TParams> : PyOptimization<TParams> where TParams : class, new() {
-    public PyRandomOptimization(ScoreFunction blackBoxScoreFunction, bool maximize = false) : base(blackBoxScoreFunction, maximize) { }
+    public PyRandomOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize = false, FileInfo? dumpResults = null) : base(blackBoxScoreFunction, maximize, dumpResults) { }
 
     public (double Score, TParams Parameters) Search(int n_calls, int? random_state = null, bool verbose = true) {
         using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
@@ -18,6 +18,9 @@ public class PyRandomOptimization<TParams> : PyOptimization<TParams> where TPara
 
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
+        
+        TryDumpResults(skopt, result);
+        
         var best = np.argmin(scores);
 
         //unbox the best parameters
@@ -40,7 +43,18 @@ public class PyRandomOptimization<TParams> : PyOptimization<TParams> where TPara
 
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
-        var best = np.argpartition(scores, topResults);
+        
+        TryDumpResults(skopt, result);
+        
+        int scoresCount = (int) scores.shape[0];
+        dynamic best; //numpy array of indices
+        if (topResults < scoresCount) {
+            best = np.argpartition(scores, topResults);
+        } else {
+            best = np.arange(scoresCount);
+        }
+
+        topResults = Math.Min(topResults, scoresCount);
 
         var returns = new (double Score, TParams Parameters)[topResults];
         for (int i = 0; i < returns.Length; i++) {

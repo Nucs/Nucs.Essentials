@@ -33,7 +33,7 @@ public static class PyBasyesianOptimization {
 /// </summary>
 /// <typeparam name="TParams">A class and new() for parameters</typeparam>
 public class PyBasyesianOptimization<TParams> : PyOptimization<TParams> where TParams : class, new() {
-    public PyBasyesianOptimization(ScoreFunction blackBoxScoreFunction, bool maximize = false) : base(blackBoxScoreFunction, maximize) { }
+    public PyBasyesianOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize = false, FileInfo? dumpResults = null) : base(blackBoxScoreFunction, maximize, dumpResults) { }
 
     public (double Score, TParams Parameters) Search(int n_calls, int n_random_starts, PyBasyesianOptimization.InitialPointGenerator initial_point_generator = PyBasyesianOptimization.InitialPointGenerator.random,
                                                      PyBasyesianOptimization.AcqFunc acq_func = PyBasyesianOptimization.AcqFunc.gp_hedge, PyBasyesianOptimization.AcqOptimizer acq_optimizer = PyBasyesianOptimization.AcqOptimizer.lbfgs,
@@ -46,6 +46,9 @@ public class PyBasyesianOptimization<TParams> : PyOptimization<TParams> where TP
                                        n_points: n_points, n_restarts_optimizer: n_restarts_optimizer, xi: xi, kappa: kappa, verbose: verbose);
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
+
+        TryDumpResults(skopt, result);
+
         var best = np.argmin(scores);
 
         //unbox the best parameters
@@ -71,7 +74,18 @@ public class PyBasyesianOptimization<TParams> : PyOptimization<TParams> where TP
                                        n_points: n_points, n_restarts_optimizer: n_restarts_optimizer, xi: xi, kappa: kappa, verbose: verbose);
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
-        var best = np.argpartition(scores, topResults);
+
+        TryDumpResults(skopt, result);
+
+        int scoresCount = (int) scores.shape[0];
+        dynamic best; //numpy array of indices
+        if (topResults < scoresCount) {
+            best = np.argpartition(scores, topResults);
+        } else {
+            best = np.arange(scoresCount);
+        }
+
+        topResults = Math.Min(topResults, scoresCount);
 
         var returns = new (double Score, TParams Parameters)[topResults];
         for (int i = 0; i < returns.Length; i++) {

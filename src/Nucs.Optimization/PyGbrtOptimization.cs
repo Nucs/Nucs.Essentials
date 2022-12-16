@@ -42,7 +42,7 @@ public static class PyGbrtOptimization {
 public class PyGbrtOptimization<TParams> : PyOptimization<TParams> where TParams : class, new() {
     private readonly dynamic _forest;
 
-    public PyGbrtOptimization(ScoreFunction blackBoxScoreFunction, bool maximize = false) : base(blackBoxScoreFunction, maximize) {
+    public PyGbrtOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize = false, FileInfo? dumpResults = null) : base(blackBoxScoreFunction, maximize, dumpResults) {
         _forest = PyModule.FromString("forest", EmbeddedResourceHelper.ReadEmbeddedResource("forest.py")!);
     }
 
@@ -53,13 +53,15 @@ public class PyGbrtOptimization<TParams> : PyOptimization<TParams> where TParams
         using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
         using dynamic np = Python.Runtime.PyModule.Import("numpy");
 
-        var result = skopt.gbrt_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls, n_random_starts: n_random_starts,
-                                         initial_point_generator: initial_point_generator.AsString(), acq_func: acq_func.AsString(),
-                                         n_jobs: 1, random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None,
-                                         n_points: n_points, xi: xi, kappa: kappa, verbose: verbose);
+        dynamic? result = skopt.gbrt_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls, n_random_starts: n_random_starts,
+                                              initial_point_generator: initial_point_generator.AsString(), acq_func: acq_func.AsString(),
+                                              n_jobs: 1, random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None,
+                                              n_points: n_points, xi: xi, kappa: kappa, verbose: verbose);
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
         var best = np.argmin(scores);
+
+        TryDumpResults(skopt, result);
 
         //unbox the best parameters
         List<Tuple<string, object>> values = (List<Tuple<string, object>>) _helper.unbox_params(ParametersAnalyzer<TParams>.ParameterNames, scoreParameters[best])
@@ -87,7 +89,17 @@ public class PyGbrtOptimization<TParams> : PyOptimization<TParams> where TParams
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
 
-        var best = np.argpartition(scores, topResults);
+        TryDumpResults(skopt, result);
+        
+        int scoresCount = (int) scores.shape[0];
+        dynamic best; //numpy array of indices
+        if (topResults < scoresCount) {
+            best = np.argpartition(scores, topResults);
+        } else {
+            best = np.arange(scoresCount);
+        }
+
+        topResults = Math.Min(topResults, scoresCount);
 
         var returns = new (double Score, TParams Parameters)[topResults];
         for (int i = 0; i < returns.Length; i++) {

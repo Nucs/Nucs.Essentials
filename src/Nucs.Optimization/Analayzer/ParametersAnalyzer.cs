@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using Nucs.Optimization.Attributes;
-using Python.Runtime;
-using RangeAttribute = Nucs.Optimization.Attributes.RangeAttribute;
 
 namespace Nucs.Optimization.Analayzer;
 
@@ -13,11 +11,15 @@ public static class ParametersAnalyzer<TParams> where TParams : class, new() {
 
     #if DEBUG
     public static void Initialize() {
-    #else
+        #else
     public static void Initialize() { }
 
     static ParametersAnalyzer() {
         #endif
+        if (ParameterNames != null)
+            return; //for debugging already initialized.
+
+        var p_attr = typeof(TParams).GetCustomAttribute<ParametersAttribute>();
 
         foreach (MemberInfo field in typeof(TParams).GetFields().Cast<MemberInfo>().Concat(typeof(TParams).GetProperties().Cast<MemberInfo>())) {
             Type valueType = (field as FieldInfo)?.FieldType ?? (field as PropertyInfo)?.PropertyType!;
@@ -25,8 +27,43 @@ public static class ParametersAnalyzer<TParams> where TParams : class, new() {
                 continue;
 
             var tc = GetPrimitiveTypeCode(valueType);
-            var valuesAttr = field.GetCustomAttribute<ValuesAttribute>();
-            var rangeAttr = field.GetCustomAttribute<RangeAttribute>();
+            var declaration = field.GetCustomAttributes<DimensionAttribute>().ToArray();
+
+            DimensionAttribute space;
+            switch (declaration.Length) {
+                case > 1: throw new Exception("Multiple dimension space attributes are not allowed.");
+                case 1:
+                    //already declared
+                    space = declaration[0];
+                    break;
+                default: {
+                    //resolve
+                    if (p_attr is { Inclusion: ParametersInclusion.ExplicitOnly })
+                        continue;
+
+                    space = tc switch {
+                        TypeCode.Char    => new IntegerSpace<char>(char.MinValue, char.MaxValue),
+                        TypeCode.SByte   => new IntegerSpace<sbyte>(sbyte.MinValue, sbyte.MaxValue),
+                        TypeCode.Byte    => new IntegerSpace<byte>(byte.MinValue, byte.MaxValue),
+                        TypeCode.Int16   => new IntegerSpace<short>(short.MinValue, short.MaxValue),
+                        TypeCode.UInt16  => new IntegerSpace<ushort>(ushort.MinValue, ushort.MaxValue),
+                        TypeCode.Int32   => new IntegerSpace<int>(int.MinValue, int.MaxValue),
+                        TypeCode.UInt32  => new IntegerSpace<uint>(uint.MinValue, uint.MaxValue),
+                        TypeCode.Int64   => new IntegerSpace<long>(long.MinValue, long.MaxValue),
+                        TypeCode.UInt64  => new IntegerSpace<ulong>(ulong.MinValue, ulong.MaxValue),
+                        TypeCode.Single  => new RealSpace<float>(float.MinValue, float.MaxValue),
+                        TypeCode.Double  => new RealSpace<double>(double.MinValue, double.MaxValue),
+                        TypeCode.Decimal => new RealSpace<decimal>(decimal.MinValue, decimal.MaxValue),
+                        TypeCode.Boolean => new CategoricalSpace<bool>(new bool[] { true, false }),
+                        TypeCode.String => valueType.IsEnum
+                            ? (DimensionAttribute) typeof(CategoricalSpace<>).MakeGenericType(valueType).GetConstructor(new[] { valueType.MakeArrayType() }).Invoke(new object[] { Enum.GetValues(valueType) })
+                            : throw new ArgumentException($"{field.Name} has to be decorated with [CategoricalSpace<string>(...)]"),
+
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+                    break;
+                }
+            }
 
             ParameterType param = tc switch {
                 TypeCode.Char    => CreateNumerical<char>(),
@@ -41,41 +78,43 @@ public static class ParametersAnalyzer<TParams> where TParams : class, new() {
                 TypeCode.Single  => CreateNumerical<float>(),
                 TypeCode.Double  => CreateNumerical<double>(),
                 TypeCode.Decimal => CreateNumerical<decimal>(),
-                TypeCode.Boolean => CreateCategorical<bool>(new bool[] { true, false }),
+                TypeCode.Boolean => CreateCategorical<bool>(),
                 TypeCode.String => valueType.IsEnum
-                    ? CreateEnum(valueType, valuesAttr?.Values.Select(v => v as string ?? v.ToString()).ToArray() ?? Enums.GetNames(valueType).ToArray())
-                    : CreateCategorical<string>(valuesAttr?.Values.Select(v => v as string ?? v.ToString()).ToArray() ?? throw new ConstraintException($"No values specified for {field.Name} via {nameof(ValuesAttribute)}")),
+                    ? CreateEnum(valueType)
+                    : CreateCategorical<string>(),
 
                 _ => throw new ArgumentOutOfRangeException()
             };
 
+            Parameters.Add(param.Name, param);
+
             ParameterType CreateNumerical<T>() where T : INumber<T>, IMinMaxValue<T> {
-                if (valuesAttr != null) {
+                if (space is CategoricalSpace) {
                     var lhs = Expression.Variable(typeof(TParams), "lhs");
                     var rhs = Expression.Variable(typeof(T), "rhs");
                     var accessor = Expression.Lambda<CategoricalParameterType<T>.AssignDelegate<TParams>>(
                         Expression.Assign(Expression.PropertyOrField(lhs, field.Name), rhs), lhs, rhs).Compile();
                     //categorical
-                    return new CategoricalParameterType<T>(field.Name, tc, accessor, valuesAttr.Values.Select(v => (T) Convert.ChangeType(v, typeof(T))).ToArray());
+                    return new CategoricalParameterType<T>(field.Name, tc, accessor, space);
                 } else {
                     var lhs = Expression.Variable(typeof(TParams), "lhs");
                     var rhs = Expression.Variable(typeof(T), "rhs");
                     var accessor = Expression.Lambda<NumericalParameterType<T>.AssignDelegate<TParams>>(
                         Expression.Assign(Expression.PropertyOrField(lhs, field.Name), rhs), lhs, rhs).Compile();
-                    var param = new NumericalParameterType<T>(field.Name, tc, accessor, rangeAttr ?? throw new ConstraintException($"No range specified for {field} via {nameof(ValuesAttribute)}"));
+                    var param = new NumericalParameterType<T>(field.Name, tc, accessor, space);
                     return param;
                 }
             }
 
-            ParameterType CreateCategorical<T>(T[] values) {
+            ParameterType CreateCategorical<T>() {
                 var lhs = Expression.Variable(typeof(TParams), "lhs");
                 var rhs = Expression.Variable(typeof(T), "rhs");
                 var accessor = Expression.Lambda<CategoricalParameterType<T>.AssignDelegate<TParams>>(
                     Expression.Assign(Expression.PropertyOrField(lhs, field.Name), rhs), lhs, rhs).Compile();
-                return new CategoricalParameterType<T>(field.Name, tc, accessor, values);
+                return new CategoricalParameterType<T>(field.Name, tc, accessor, space);
             }
 
-            ParameterType CreateEnum(Type enumType, string[] values) {
+            ParameterType CreateEnum(Type enumType) {
                 Expression<Func<Type, string, Enum>> asEnum = (type, s) => (Enum) Enums.Parse(type, s, true);
                 Expression<Func<Type, Enum, string>> asString = (type, s) => Enums.AsString(type, s);
 
@@ -86,10 +125,11 @@ public static class ParametersAnalyzer<TParams> where TParams : class, new() {
                 var accessor = Expression.Lambda<CategoricalParameterType<string>.AssignDelegate<TParams>>(
                     Expression.Assign(Expression.PropertyOrField(lhs, field.Name), asEnumInvocation), lhs, rhs).Compile();
 
-                return new CategoricalParameterType<string>(field.Name, tc, accessor, values);
+                return (ParameterType) typeof(CategoricalParameterType<>)
+                                      .MakeGenericType(valueType)
+                                      .GetConstructor(new[] { typeof(string), typeof(TypeCode), typeof(CategoricalParameterType<string>.AssignDelegate<TParams>), typeof(DimensionAttribute) })
+                                      .Invoke(new object[] { field.Name, tc, accessor, space });
             }
-
-            Parameters.Add(param.Name, param);
         }
 
         ParameterNames = Parameters.Select(s => s.Key).ToArray();

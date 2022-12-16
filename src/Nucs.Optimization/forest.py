@@ -6,6 +6,7 @@ from skopt.learning.forest import _return_std
 from sklearn.ensemble import RandomForestRegressor as _sk_RandomForestRegressor
 from sklearn.ensemble import ExtraTreesRegressor as _sk_ExtraTreesRegressor
 
+
 class RandomForestRegressor(_sk_RandomForestRegressor):
     """
     RandomForestRegressor that supports conditional std computation.
@@ -148,6 +149,7 @@ class RandomForestRegressor(_sk_RandomForestRegressor):
     .. [1] L. Breiman, "Random Forests", Machine Learning, 45(1), 5-32, 2001.
 
     """
+
     def __init__(self, n_estimators=10, criterion='mse', max_depth=None,
                  min_samples_split=2, min_samples_leaf=1,
                  min_weight_fraction_leaf=0.0, max_features='auto',
@@ -200,8 +202,6 @@ class RandomForestRegressor(_sk_RandomForestRegressor):
             std = _return_std(X, self.estimators_, mean, self.min_variance)
             return mean, std
         return mean
-
-
 
 
 class ExtraTreesRegressor(_sk_ExtraTreesRegressor):
@@ -465,6 +465,7 @@ class ExtraTreesRegressor(_sk_ExtraTreesRegressor):
     >>> reg.score(X_test, y_test)
     0.2727...
     """
+
     def __init__(self, n_estimators=10, criterion='squared_error', max_depth=None,
                  min_samples_split=2, min_samples_leaf=1,
                  min_weight_fraction_leaf=0.0, max_features='auto',

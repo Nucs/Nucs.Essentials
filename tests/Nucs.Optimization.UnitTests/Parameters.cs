@@ -9,26 +9,26 @@ public enum SomeEnum {
 }
 
 public record Parameters {
-    [Range<int>(0, int.MaxValue)]
+    [IntegerSpace<int>(0, int.MaxValue)]
     public int Seed; //range of 0 to int.MaxValue
 
-    [Range<double>(0, Math.PI)]
+    [RealSpace<double>(0, Math.PI)]
     public double FloatSeed; //range of 0 to int.MaxValue
 
-    [Values("A", "B", "C")]
+    [CategoricalSpace<string>("A", "B", "C")]
     public string Categories; //one of "A", "B", "C"
 
-    [Values(1f, 2f, 3f)]
+    [CategoricalSpace<float>(1f, 2f, 3f)]
     public float NumericalCategories { get; set; } //one of 1f, 2f, 3f
 
     public bool UseMethod; //true or false
 
     public SomeEnum AnEnum; //one of the enum values ("A", "B", "C")
 
-    [Values('a', 'b', 'c')]
+    [CategoricalSpace<char>('a', 'b', 'c')]
     public char Letter; //one of the enum values ('a', 'b', 'c')
 
-    [Values(SomeEnum.A, SomeEnum.B)]
+    [CategoricalSpace<SomeEnum>(SomeEnum.A, SomeEnum.B)]
     public SomeEnum AnEnumWithValues; //one of the enum values ("A", "B")
 
     [IgnoreDataMember]

@@ -14,11 +14,11 @@ PM> Install-Package Nucs.Essentials
 
 
 # <img src="https://i.imgur.com/BOExs52.png" width="25" style="margin: 5px 0px 0px 10px"/> Nucs.Optimization
-[![Nuget downloads](https://img.shields.io/nuget/vpre/Nucs.Optimization.svg)](https://www.nuget.org/packages/Nucs.Optimization/)
-[![NuGet](https://img.shields.io/nuget/dt/Nucs.Optimization.svg)](https://github.com/Nucs/Nucs.Optimization)
+[![Nuget downloads](https://img.shields.io/nuget/vpre/Nucs.Optimization.svg)](https://www.nuget.org/packages/Nucs.Essentials/)
+[![NuGet](https://img.shields.io/nuget/dt/Nucs.Optimization.svg)](https://github.com/Nucs/Nucs.Essentials)
 [![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/Nucs/Essentials/blob/master/LICENSE)
 
-A .NET binding to skopt (scikit-optimize) - a optimization library with support to dynamic search spaces through generic binding.<br/>
+A .NET binding (using [pythonnet](https://github.com/pythonnet/pythonnet)) to [skopt (scikit-optimize)](https://scikit-optimize.github.io/) - an optimization library with support to dynamic search spaces through generic binding.<br/>
 
 *For installation, [continue here](https://github.com/Nucs/Nucs.Essentials/tree/main/src/Nucs.Optimization)*
 
@@ -26,7 +26,7 @@ A .NET binding to skopt (scikit-optimize) - a optimization library with support 
 ```C#
 [Maximize] //or [Minimize]
 double ScoreFunction(Parameters parameters) {
-    var res = (parameters.Seed * parameters.NumericalCategories * (parameters.UseMethod ? 1 : -1)) / 1000000;
+    var res = (parameters.Seed * parameters.NumericalCategories * (parameters.UseMethod ? 1 : -1) * Math.Sin(0.05+parameters.FloatSeed)) / 1000000;
     Console.WriteLine($"Score: {res}, Parameters: {parameters}");
     return res;
 }

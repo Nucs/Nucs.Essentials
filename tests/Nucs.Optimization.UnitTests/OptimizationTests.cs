@@ -122,7 +122,7 @@ public class OptimizationTests : PythonTest {
         types["FloatSeed"].IsFloating.Should().BeTrue();
         types["NumericalCategories"].IsFloating.Should().BeTrue();
 
-        types["AnEnum"].ValueType.Should().Be(typeof(string));
+        types["AnEnum"].ValueType.Should().Be(typeof(SomeEnum));
         types["Letter"].ValueType.Should().Be(typeof(char));
     }
 }

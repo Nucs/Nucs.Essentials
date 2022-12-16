@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <RootNamespace>Nucs</RootNamespace>
+        <RootNamespace>Nucs.Optimization</RootNamespace>
         <LangVersion>11</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
@@ -21,21 +21,21 @@
         <PackageVersion>1.2.0</PackageVersion>
         <PackageReleaseNotes></PackageReleaseNotes>
     </PropertyGroup>
-    
+
     <ItemGroup>
-      <PackageReference Include="Enums.NET" Version="4.0.1" />
-      <PackageReference Include="pythonnet" Version="3.0.1" />
+        <PackageReference Include="Enums.NET" Version="4.0.1"/>
+        <PackageReference Include="pythonnet" Version="3.0.1"/>
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="opt_helpers.py" />
-      <EmbeddedResource Include="forest.py" />
+        <EmbeddedResource Include="opt_helpers.py"/>
+        <EmbeddedResource Include="forest.py"/>
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="requirements.txt">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+        <None Update="requirements.txt">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 </Project>

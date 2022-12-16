@@ -7,7 +7,6 @@ using DotNext.Threading;
 using DotNext.Threading.Tasks;
 using FluentAssertions;
 using Nucs.Optimization.Analayzer;
-using Nucs.Optimization.Attributes;
 using Nucs.Threading;
 using Xunit;
 using AsyncCountdownEvent = Nucs.Threading.AsyncCountdownEvent;
@@ -63,7 +62,7 @@ public class ParameterAnalyzerTests {
         types["FloatSeed"].IsFloating.Should().BeTrue();
         types["NumericalCategories"].IsFloating.Should().BeTrue();
 
-        types["AnEnum"].ValueType.Should().Be(typeof(string));
+        types["AnEnum"].ValueType.Should().Be(typeof(SomeEnum));
         types["Letter"].ValueType.Should().Be(typeof(char));
     }
 }

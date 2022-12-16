@@ -1,6 +1,6 @@
 using Nucs.Optimization.Analayzer;
 
-namespace Nucs.Optimization.Helper; 
+namespace Nucs.Optimization.Helper;
 
 public static class EmbeddedResourceHelper {
     public static string? ReadEmbeddedResource(string resourceName) {

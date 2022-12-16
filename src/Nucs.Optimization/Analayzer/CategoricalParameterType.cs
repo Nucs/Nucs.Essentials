@@ -1,19 +1,17 @@
+using Nucs.Optimization.Attributes;
+
 namespace Nucs.Optimization.Analayzer;
 
 public abstract class CategoricalParameterType : ParameterType {
-    public int UpperThreshold;
-    public int LowerThreshold;
-
     public abstract object[] ObjectValues { get; }
 
-    protected CategoricalParameterType(string name, TypeCode type) : base(name, type) { }
+    protected CategoricalParameterType(string name, TypeCode type, DimensionAttribute space) : base(name, type, space) { }
 }
 
 public class CategoricalParameterType<T> : CategoricalParameterType {
     public static bool IsEnum = typeof(T).IsEnum;
     internal delegate void AssignDelegate<in TParams>(TParams parameters, T value);
-    public readonly T[] Values;
-    public override object[] ObjectValues => Values.Select(v => (object) v).ToArray();
+    public override object[] ObjectValues => ((CategoricalSpace<T>) Space).ObjectCategories;
 
     internal readonly Delegate AssignPointer;
 
@@ -22,29 +20,16 @@ public class CategoricalParameterType<T> : CategoricalParameterType {
     }
 
     public override void Assign<TParams>(TParams parameters, object value) {
-        if (value is T tval)
+        if (IsEnum) {
+            ((CategoricalParameterType<string>.AssignDelegate<TParams>) AssignPointer)(parameters, (string) value);
+        } else if (value is T tval)
             ((CategoricalParameterType<T>.AssignDelegate<TParams>) AssignPointer)(parameters, tval);
         else
             ((CategoricalParameterType<T>.AssignDelegate<TParams>) AssignPointer)(parameters, (T) Convert.ChangeType(value, typeof(T)));
     }
 
-
-    public CategoricalParameterType(string name, TypeCode type, Delegate assignPointer, T[] values) : base(name, type) {
+    public CategoricalParameterType(string name, TypeCode type, Delegate assignPointer, DimensionAttribute space) : base(name, type, space) {
         AssignPointer = assignPointer;
-        Values = values;
-        LowerThreshold = 0;
-        UpperThreshold = Values.Length - 1;
-        IsNumerical = type switch {
-            TypeCode.UInt16 => true,
-            TypeCode.UInt32 => true,
-            TypeCode.UInt64 => true,
-            TypeCode.Int16  => true,
-            TypeCode.Int32  => true,
-            TypeCode.Int64  => true,
-            TypeCode.Single => true,
-            TypeCode.Double => true,
-            _               => false
-        };
     }
 
     public override Type ValueType => typeof(T);

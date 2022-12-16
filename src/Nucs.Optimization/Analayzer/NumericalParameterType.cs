@@ -1,15 +1,10 @@
-using System.ComponentModel.DataAnnotations;
-using System.Globalization;
+using Nucs.Optimization.Attributes;
 using Python.Runtime;
-using RangeAttribute = Nucs.Optimization.Attributes.RangeAttribute;
 
 namespace Nucs.Optimization.Analayzer;
 
 public abstract class NumericalParameterType : ParameterType {
-    public double UpperThreshold;
-    public double LowerThreshold;
-
-    protected NumericalParameterType(string name, TypeCode type) : base(name, type) { }
+    protected NumericalParameterType(string name, TypeCode type, DimensionAttribute space) : base(name, type, space) { }
 }
 
 public class NumericalParameterType<T> : NumericalParameterType where T : INumber<T>, IMinMaxValue<T> {
@@ -34,14 +29,9 @@ public class NumericalParameterType<T> : NumericalParameterType where T : INumbe
             }
     }
 
-    public NumericalParameterType(string name, TypeCode type, Delegate assignPointer, T lowerThreshold, T upperThreshold) : base(name, type) {
+    public NumericalParameterType(string name, TypeCode type, Delegate assignPointer, DimensionAttribute space) : base(name, type, space) {
         AssignPointer = assignPointer;
-        LowerThreshold = double.CreateChecked(lowerThreshold);
-        UpperThreshold = double.CreateChecked(upperThreshold);
     }
-
-    public NumericalParameterType(string name, TypeCode type, Delegate assignPointer, RangeAttribute range)
-        : this(name, type, assignPointer, range.GetMinimum<T>(), range.GetMaximum<T>()) { }
 
     public override Type ValueType => typeof(T);
 }

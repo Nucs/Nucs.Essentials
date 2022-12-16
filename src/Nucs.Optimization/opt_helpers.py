@@ -2,6 +2,7 @@ import json
 import clr
 from System.Collections.Generic import SortedDictionary
 import System
+from skopt.callbacks import EarlyStopper
 
 
 def scoreWrapper(func, names, maximize):
@@ -61,3 +62,11 @@ class netdict(dict):
 # Helps with conversion of PyObject into a json
 def asJson(params):
     return json.loads(params)
+
+class EarlyStopperWrapper(EarlyStopper):
+    def __init__(self, callback) -> None:
+        super().__init__()
+        self.callback = callback
+
+    def _criterion(self, result):
+        return self.callback(result)

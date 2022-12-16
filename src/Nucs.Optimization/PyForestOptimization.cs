@@ -1,4 +1,5 @@
 using Nucs.Optimization.Analyzer;
+using Nucs.Optimization.Callbacks;
 using Nucs.Optimization.Helper;
 using Python.Runtime;
 
@@ -49,14 +50,14 @@ public class PyForestOptimization<TParams> : PyOptimization<TParams> where TPara
     public (double Score, TParams Parameters) Search(int n_calls, int n_random_starts, PyForestOptimization.BaseEstimator base_estimator = PyForestOptimization.BaseEstimator.ET,
                                                      PyForestOptimization.InitialPointGenerator initial_point_generator = PyForestOptimization.InitialPointGenerator.random,
                                                      PyForestOptimization.AcqFunc acq_func = PyForestOptimization.AcqFunc.LCB, PyForestOptimization.AcqOptimizer acq_optimizer = PyForestOptimization.AcqOptimizer.lbfgs,
-                                                     int? random_state = null, int n_points = 10000, double xi = 0.01d, double kappa = 1.96d, bool verbose = false) {
-        return SearchTop(1, n_calls, n_random_starts, base_estimator, initial_point_generator, acq_func, acq_optimizer, random_state, n_points, xi, kappa, verbose)[0];
+                                                     int? random_state = null, int n_points = 10000, double xi = 0.01d, double kappa = 1.96d, bool verbose = false, IEnumerable<PyOptCallback>? callbacks = null) {
+        return SearchTop(1, n_calls, n_random_starts, base_estimator, initial_point_generator, acq_func, acq_optimizer, random_state, n_points, xi, kappa, verbose, callbacks)[0];
     }
 
     public OptimizeResult<TParams> SearchAll(int n_calls, int n_random_starts, PyForestOptimization.BaseEstimator base_estimator = PyForestOptimization.BaseEstimator.ET,
                                              PyForestOptimization.InitialPointGenerator initial_point_generator = PyForestOptimization.InitialPointGenerator.random,
                                              PyForestOptimization.AcqFunc acq_func = PyForestOptimization.AcqFunc.LCB, PyForestOptimization.AcqOptimizer acq_optimizer = PyForestOptimization.AcqOptimizer.lbfgs,
-                                             int? random_state = null, int n_points = 10000, double xi = 0.01d, double kappa = 1.96d, bool verbose = false) {
+                                             int? random_state = null, int n_points = 10000, double xi = 0.01d, double kappa = 1.96d, bool verbose = false, IEnumerable<PyOptCallback>? callbacks = null) {
         using dynamic skopt = PyModule.Import("skopt");
         var estimator = base_estimator switch {
             PyForestOptimization.BaseEstimator.RF => _forest.RandomForestRegressor(criterion: "squared_error", random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None),
@@ -67,7 +68,7 @@ public class PyForestOptimization<TParams> : PyOptimization<TParams> where TPara
         var result = skopt.forest_minimize(wrappedScoreMethod, _searchSpace, base_estimator: estimator, n_calls: n_calls, n_random_starts: n_random_starts,
                                            initial_point_generator: initial_point_generator.AsString(), acq_func: acq_func.AsString(),
                                            n_jobs: 1, random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None,
-                                           n_points: n_points, xi: xi, kappa: kappa, verbose: verbose);
+                                           n_points: n_points, xi: xi, kappa: kappa, verbose: verbose, callback: callbacks?.Select(p=>p.This).ToPyList());
 
         TryDumpResults(skopt, result);
 
@@ -77,7 +78,7 @@ public class PyForestOptimization<TParams> : PyOptimization<TParams> where TPara
     public (double Score, TParams Parameters)[] SearchTop(int topResults, int n_calls, int n_random_starts, PyForestOptimization.BaseEstimator base_estimator = PyForestOptimization.BaseEstimator.ET,
                                                           PyForestOptimization.InitialPointGenerator initial_point_generator = PyForestOptimization.InitialPointGenerator.random,
                                                           PyForestOptimization.AcqFunc acq_func = PyForestOptimization.AcqFunc.LCB, PyForestOptimization.AcqOptimizer acq_optimizer = PyForestOptimization.AcqOptimizer.lbfgs,
-                                                          int? random_state = null, int n_points = 10000, double xi = 0.01d, double kappa = 1.96d, bool verbose = false) {
+                                                          int? random_state = null, int n_points = 10000, double xi = 0.01d, double kappa = 1.96d, bool verbose = false, IEnumerable<PyOptCallback>? callbacks = null) {
         using dynamic skopt = PyModule.Import("skopt");
         using dynamic np = PyModule.Import("numpy");
         var estimator = base_estimator switch {
@@ -89,7 +90,7 @@ public class PyForestOptimization<TParams> : PyOptimization<TParams> where TPara
         var result = skopt.forest_minimize(wrappedScoreMethod, _searchSpace, base_estimator: estimator, n_calls: n_calls, n_random_starts: n_random_starts,
                                            initial_point_generator: initial_point_generator.AsString(), acq_func: acq_func.AsString(),
                                            n_jobs: 1, random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None,
-                                           n_points: n_points, xi: xi, kappa: kappa, verbose: verbose);
+                                           n_points: n_points, xi: xi, kappa: kappa, verbose: verbose, callback: callbacks?.Select(p=>p.This).ToPyList());
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
 

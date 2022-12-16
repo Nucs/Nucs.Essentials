@@ -1,4 +1,6 @@
 using Nucs.Optimization.Analyzer;
+using Nucs.Optimization.Callbacks;
+using Nucs.Optimization.Helper;
 using Python.Runtime;
 
 namespace Nucs.Optimization;
@@ -10,26 +12,26 @@ namespace Nucs.Optimization;
 public class PyRandomOptimization<TParams> : PyOptimization<TParams> where TParams : class, new() {
     public PyRandomOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize = false, FileInfo? dumpResults = null) : base(blackBoxScoreFunction, maximize, dumpResults) { }
 
-    public (double Score, TParams Parameters) Search(int n_calls, int? random_state = null, bool verbose = true) {
-        return SearchTop(1, n_calls, random_state, verbose)[0];
+    public (double Score, TParams Parameters) Search(int n_calls, int? random_state = null, bool verbose = true, IEnumerable<PyOptCallback>? callbacks = null) {
+        return SearchTop(1, n_calls, random_state, verbose, callbacks)[0];
     }
 
-    public OptimizeResult<TParams> SearchAll(int n_calls, int? random_state = null, bool verbose = true) {
+    public OptimizeResult<TParams> SearchAll(int n_calls, int? random_state = null, bool verbose = true, IEnumerable<PyOptCallback>? callbacks = null) {
         using dynamic skopt = PyModule.Import("skopt");
         using dynamic np = PyModule.Import("numpy");
         var result = skopt.dummy_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls,
-                                          random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None, verbose: verbose);
+                                          random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None, verbose: verbose, callback: callbacks?.Select(p=>p.This).ToPyList());
 
         TryDumpResults(skopt, result);
 
         return new OptimizeResult<TParams>(result, _maximize);
     }
 
-    public (double Score, TParams Parameters)[] SearchTop(int topResults, int n_calls, int? random_state = null, bool verbose = true) {
+    public (double Score, TParams Parameters)[] SearchTop(int topResults, int n_calls, int? random_state = null, bool verbose = true, IEnumerable<PyOptCallback>? callbacks = null) {
         using dynamic skopt = PyModule.Import("skopt");
         using dynamic np = PyModule.Import("numpy");
         var result = skopt.dummy_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls,
-                                          random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None, verbose: verbose);
+                                          random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None, verbose: verbose, callback: callbacks?.Select(p=>p.This).ToPyList());
 
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;

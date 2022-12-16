@@ -5,9 +5,7 @@ using Xunit;
 
 namespace Nucs.Essentials.UnitTests;
 
-public abstract class PythonTest : IDisposable {
-    private readonly Py.GILState _gil;
-
+public abstract class PythonTest {
     [MethodImpl(MethodImplOptions.Synchronized)]
     protected PythonTest() {
         if (PythonEngine.IsInitialized) return;
@@ -15,10 +13,6 @@ public abstract class PythonTest : IDisposable {
         PythonEngine.Initialize();
         PythonEngine.BeginAllowThreads();
 
-        _gil = Py.GIL();
     }
 
-    public void Dispose() {
-        _gil.Dispose();
-    }
 }

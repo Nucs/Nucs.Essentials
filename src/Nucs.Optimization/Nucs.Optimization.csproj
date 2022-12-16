@@ -23,13 +23,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Enums.NET" Version="4.0.1"/>
-        <PackageReference Include="pythonnet" Version="3.0.1"/>
+        <PackageReference Include="Enums.NET" Version="4.0.1" />
+        <PackageReference Include="pythonnet" Version="3.0.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="opt_helpers.py"/>
-        <EmbeddedResource Include="forest.py"/>
+        <EmbeddedResource Include="opt_helpers.py" />
+        <EmbeddedResource Include="forest.py" />
     </ItemGroup>
 
     <ItemGroup>

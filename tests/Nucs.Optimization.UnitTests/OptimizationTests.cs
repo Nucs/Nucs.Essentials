@@ -32,11 +32,11 @@ public class OptimizationTests : PythonTest {
 
     public OptimizationTests(ITestOutputHelper console) : base() {
         Console = console;
-        
+
         _optimalParameters = new Parameters() {
             Seed = int.MaxValue,
             NumericalCategories = 3,
-            FloatSeed = Math.PI/2 - 0.05d,
+            FloatSeed = Math.PI / 2 - 0.05d,
             UseMethod = true,
         };
 
@@ -46,9 +46,10 @@ public class OptimizationTests : PythonTest {
 
     [Fact]
     public void Bayesian() {
+        using var _ = Py.GIL();
         ParametersAnalyzer<Parameters>.Initialize();
 
-        var opt = new PyBasyesianOptimization<Parameters>(ScoreFunction);
+        var opt = new PyBayesianOptimization<Parameters>(ScoreFunction);
         //(double Score, Parameters Parameters) = opt.Search(n_calls: 100, 10, verbose: false);
 
         (double score, Parameters parameters) = opt.Search(75, 50, random_state: 1337);
@@ -60,6 +61,7 @@ public class OptimizationTests : PythonTest {
 
     [Fact]
     public void Forest() {
+        using var _ = Py.GIL();
         ParametersAnalyzer<Parameters>.Initialize();
 
         var opt = new PyForestOptimization<Parameters>(ScoreFunction);
@@ -73,6 +75,7 @@ public class OptimizationTests : PythonTest {
 
     [Fact]
     public void Gbrt() {
+        using var _ = Py.GIL();
         ParametersAnalyzer<Parameters>.Initialize();
 
         var opt = new PyGbrtOptimization<Parameters>(ScoreFunction);
@@ -86,6 +89,8 @@ public class OptimizationTests : PythonTest {
 
     [Fact]
     public void Random() {
+        using var _ = Py.GIL();
+
         ParametersAnalyzer<Parameters>.Initialize();
 
         var opt = new PyRandomOptimization<Parameters>(ScoreFunction);
@@ -100,6 +105,7 @@ public class OptimizationTests : PythonTest {
 
     [Fact]
     public void Random_SearchAll() {
+        using var _ = Py.GIL();
         ParametersAnalyzer<Parameters>.Initialize();
 
         var opt = new PyRandomOptimization<Parameters>(ScoreFunction);

@@ -16,7 +16,7 @@ static double ScoreFunction(Parameters parameters) {
     return res;
 }
 
-var opt = new PyBasyesianOptimization<Parameters>(ScoreFunction);
+var opt = new PyBayesianOptimization<Parameters>(ScoreFunction);
 //(double Score, Parameters Parameters) = opt.Search(n_calls: 100, 10, verbose: false);
 
 var optimal = new Parameters() {

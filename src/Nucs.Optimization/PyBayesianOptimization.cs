@@ -32,8 +32,8 @@ public static class PyBasyesianOptimization {
 ///     A wrapper for bayesian optimization using python.
 /// </summary>
 /// <typeparam name="TParams">A class and new() for parameters</typeparam>
-public class PyBasyesianOptimization<TParams> : PyOptimization<TParams> where TParams : class, new() {
-    public PyBasyesianOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize = false, FileInfo? dumpResults = null) : base(blackBoxScoreFunction, maximize, dumpResults) { }
+public class PyBayesianOptimization<TParams> : PyOptimization<TParams> where TParams : class, new() {
+    public PyBayesianOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize = false, FileInfo? dumpResults = null) : base(blackBoxScoreFunction, maximize, dumpResults) { }
 
     public (double Score, TParams Parameters) Search(int n_calls, int n_random_starts, PyBasyesianOptimization.InitialPointGenerator initial_point_generator = PyBasyesianOptimization.InitialPointGenerator.random,
                                                      PyBasyesianOptimization.AcqFunc acq_func = PyBasyesianOptimization.AcqFunc.gp_hedge, PyBasyesianOptimization.AcqOptimizer acq_optimizer = PyBasyesianOptimization.AcqOptimizer.lbfgs,
@@ -51,7 +51,7 @@ public class PyBasyesianOptimization<TParams> : PyOptimization<TParams> where TP
                                        n_points: n_points, n_restarts_optimizer: n_restarts_optimizer, xi: xi, kappa: kappa, verbose: verbose);
 
         TryDumpResults(skopt, result);
-        
+
         return new OptimizeResult<TParams>(result, _maximize);
     }
 

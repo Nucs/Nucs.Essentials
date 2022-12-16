@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using FluentAssertions;
 using Nucs.Optimization;
+using Python.Runtime;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,10 +17,12 @@ public class LoadDumpTests : PythonTest {
 
     [Fact]
     public void LoadAndDump() {
-        //run a PyBayesianOptimization and then dump it to a temporary file
+        using var _ = Py.GIL();
+        
+        //run a PyBasyesianOptimization and then dump it to a temporary file
         using var tmpFile = new TempFile();
         _testOutputHelper.WriteLine(tmpFile.ToString());
-        var bo = new PyBasyesianOptimization<Parameters>(BlackBoxScoreFunction, maximize: true, tmpFile);
+        var bo = new PyBayesianOptimization<Parameters>(BlackBoxScoreFunction, maximize: true, tmpFile);
         bo.SearchTop(20, 20, 10);
 
         var loaded = PyOptimization<Parameters>.Load(tmpFile, maximize: true);

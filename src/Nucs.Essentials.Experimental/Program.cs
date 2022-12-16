@@ -28,7 +28,7 @@ var optimal = new Parameters() {
 
 Console.WriteLine($"Optimal: {ScoreFunction(optimal)}, Parameters: {optimal}");
 
-var t = opt.TopSearch(10, n_calls: 200, 100, verbose: false);
+var t = opt.SearchTop(10, n_calls: 200, 100, verbose: false);
 
 foreach ((double Score, Parameters Parameters) in t) {
     Console.WriteLine($"Best Score: {Score} for {Parameters}");

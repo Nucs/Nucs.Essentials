@@ -11,31 +11,10 @@ public class PyRandomOptimization<TParams> : PyOptimization<TParams> where TPara
     public PyRandomOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize = false, FileInfo? dumpResults = null) : base(blackBoxScoreFunction, maximize, dumpResults) { }
 
     public (double Score, TParams Parameters) Search(int n_calls, int? random_state = null, bool verbose = true) {
-        using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
-        using dynamic np = Python.Runtime.PyModule.Import("numpy");
-        var result = skopt.dummy_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls,
-                                          random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None, verbose: verbose);
-
-        var scores = result.func_vals;
-        var scoreParameters = result.x_iters;
-        
-        TryDumpResults(skopt, result);
-        
-        var best = np.argmin(scores);
-
-        //unbox the best parameters
-        List<Tuple<string, object>> values = (List<Tuple<string, object>>) _helper.unbox_params(ParametersAnalyzer<TParams>.ParameterNames, scoreParameters[best])
-                                                                                  .AsManagedObject(typeof(List<Tuple<string, object>>));
-        var bestParameters = ParametersAnalyzer<TParams>.Populate(values);
-
-        //adjust score polarity to the goal
-        double score = (double) scores[best] * (_maximize ? -1 : 1);
-
-        //return the best score and the parameters
-        return (Score: score, Parameters: bestParameters);
+        return SearchTop(1, n_calls, random_state, verbose)[0];
     }
 
-    public (double Score, TParams Parameters)[] TopSearch(int topResults, int n_calls, int? random_state = null, bool verbose = true) {
+    public (double Score, TParams Parameters)[] SearchTop(int topResults, int n_calls, int? random_state = null, bool verbose = true) {
         using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
         using dynamic np = Python.Runtime.PyModule.Import("numpy");
         var result = skopt.dummy_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls,
@@ -43,9 +22,9 @@ public class PyRandomOptimization<TParams> : PyOptimization<TParams> where TPara
 
         var scores = result.func_vals;
         var scoreParameters = result.x_iters;
-        
+
         TryDumpResults(skopt, result);
-        
+
         int scoresCount = (int) scores.shape[0];
         dynamic best; //numpy array of indices
         if (topResults < scoresCount) {

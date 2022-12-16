@@ -20,7 +20,7 @@ public class LoadDumpTests : PythonTest {
         using var tmpFile = new TempFile();
         _testOutputHelper.WriteLine(tmpFile.ToString());
         var bo = new PyBasyesianOptimization<Parameters>(BlackBoxScoreFunction, maximize: true, tmpFile);
-        bo.TopSearch(20, 20, 10);
+        bo.SearchTop(20, 20, 10);
 
         var loaded = PyOptimization<Parameters>.Load(tmpFile, maximize: true);
         loaded.Iterations.Length.Should().Be(20);

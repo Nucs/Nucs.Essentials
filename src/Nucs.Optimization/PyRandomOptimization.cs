@@ -14,9 +14,20 @@ public class PyRandomOptimization<TParams> : PyOptimization<TParams> where TPara
         return SearchTop(1, n_calls, random_state, verbose)[0];
     }
 
+    public OptimizeResult<TParams> SearchAll(int n_calls, int? random_state = null, bool verbose = true) {
+        using dynamic skopt = PyModule.Import("skopt");
+        using dynamic np = PyModule.Import("numpy");
+        var result = skopt.dummy_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls,
+                                          random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None, verbose: verbose);
+
+        TryDumpResults(skopt, result);
+
+        return new OptimizeResult<TParams>(result, _maximize);
+    }
+
     public (double Score, TParams Parameters)[] SearchTop(int topResults, int n_calls, int? random_state = null, bool verbose = true) {
-        using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
-        using dynamic np = Python.Runtime.PyModule.Import("numpy");
+        using dynamic skopt = PyModule.Import("skopt");
+        using dynamic np = PyModule.Import("numpy");
         var result = skopt.dummy_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls,
                                           random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None, verbose: verbose);
 
@@ -46,8 +57,8 @@ public class PyRandomOptimization<TParams> : PyOptimization<TParams> where TPara
             double score = (double) scores[best[i]] * (_maximize ? -1 : 1);
             returns[i] = (Score: score, Parameters: bestParameters);
         }
-
-        Array.Sort(returns, (tuple, valueTuple) => valueTuple.Score.CompareTo(tuple.Score));
+        
+        Array.Sort(returns, _maximize ? (lhs, rhs) => rhs.Score.CompareTo(lhs.Score) : (lhs, rhs) => lhs.Score.CompareTo(rhs.Score));
 
         //return the best score and the parameters
         return returns;

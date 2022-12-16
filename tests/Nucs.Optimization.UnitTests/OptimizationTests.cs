@@ -99,6 +99,20 @@ public class OptimizationTests : PythonTest {
     }
 
     [Fact]
+    public void Random_SearchAll() {
+        ParametersAnalyzer<Parameters>.Initialize();
+
+        var opt = new PyRandomOptimization<Parameters>(ScoreFunction);
+        //(double Score, Parameters Parameters) = opt.Search(n_calls: 100, 10, verbose: false);
+
+        var result = opt.SearchAll(5000, random_state: 1337);
+        Console.WriteLine($"Best Score: {result.BestScore}, Parameters: {result.Best}");
+        Console.WriteLine($"{_optimal - result.BestScore} score from optimal");
+
+        (_optimal - result.BestScore).Should().BeLessThan(15).And.BeGreaterThan(0);
+    }
+
+    [Fact]
     public void ParameterCollection() {
         ParametersAnalyzer<Parameters>.Initialize();
 

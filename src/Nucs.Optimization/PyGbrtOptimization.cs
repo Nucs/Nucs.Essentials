@@ -53,12 +53,27 @@ public class PyGbrtOptimization<TParams> : PyOptimization<TParams> where TParams
         return SearchTop(1, n_calls, n_random_starts, base_estimator, initial_point_generator, acq_func, acq_optimizer, random_state, n_points, xi, kappa, verbose)[0];
     }
 
+    public OptimizeResult<TParams> SearchAll(int n_calls, int n_random_starts, PyGbrtOptimization.BaseEstimator base_estimator = PyGbrtOptimization.BaseEstimator.ET,
+                                             PyGbrtOptimization.InitialPointGenerator initial_point_generator = PyGbrtOptimization.InitialPointGenerator.random,
+                                             PyGbrtOptimization.AcqFunc acq_func = PyGbrtOptimization.AcqFunc.LCB, PyGbrtOptimization.AcqOptimizer acq_optimizer = PyGbrtOptimization.AcqOptimizer.lbfgs,
+                                             int? random_state = null, int n_points = 10000, double xi = 0.01d, double kappa = 1.96d, bool verbose = false) {
+        using dynamic skopt = PyModule.Import("skopt");
+        var result = skopt.gbrt_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls, n_random_starts: n_random_starts,
+                                         initial_point_generator: initial_point_generator.AsString(), acq_func: acq_func.AsString(),
+                                         n_jobs: 1, random_state: random_state != null ? new PyInt(random_state.Value) : PyObject.None,
+                                         n_points: n_points, xi: xi, kappa: kappa, verbose: verbose);
+
+        TryDumpResults(skopt, result);
+
+        return new OptimizeResult<TParams>(result, _maximize);
+    }
+
     public (double Score, TParams Parameters)[] SearchTop(int topResults, int n_calls, int n_random_starts, PyGbrtOptimization.BaseEstimator base_estimator = PyGbrtOptimization.BaseEstimator.ET,
                                                           PyGbrtOptimization.InitialPointGenerator initial_point_generator = PyGbrtOptimization.InitialPointGenerator.random,
                                                           PyGbrtOptimization.AcqFunc acq_func = PyGbrtOptimization.AcqFunc.LCB, PyGbrtOptimization.AcqOptimizer acq_optimizer = PyGbrtOptimization.AcqOptimizer.lbfgs,
                                                           int? random_state = null, int n_points = 10000, double xi = 0.01d, double kappa = 1.96d, bool verbose = false) {
-        using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
-        using dynamic np = Python.Runtime.PyModule.Import("numpy");
+        using dynamic skopt = PyModule.Import("skopt");
+        using dynamic np = PyModule.Import("numpy");
 
         var result = skopt.gbrt_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls, n_random_starts: n_random_starts,
                                          initial_point_generator: initial_point_generator.AsString(), acq_func: acq_func.AsString(),
@@ -91,8 +106,8 @@ public class PyGbrtOptimization<TParams> : PyOptimization<TParams> where TParams
             returns[i] = (Score: score, Parameters: bestParameters);
         }
 
-        Array.Sort(returns, (tuple, valueTuple) => valueTuple.Score.CompareTo(tuple.Score));
-
+        Array.Sort(returns, _maximize ? (lhs, rhs) => rhs.Score.CompareTo(lhs.Score) : (lhs, rhs) => lhs.Score.CompareTo(rhs.Score));
+        
         //return the best score and the parameters
         return returns;
     }

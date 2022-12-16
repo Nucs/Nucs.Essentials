@@ -103,7 +103,7 @@ public abstract class PyOptimization<TParams> : IDisposable where TParams : clas
         if (!Path.Exists(path))
             throw new FileNotFoundException($"File {path} not found.");
 
-        using dynamic skopt = Python.Runtime.PyModule.Import("skopt");
+        using dynamic skopt = PyModule.Import("skopt");
         return new OptimizeResult<TParams>(skopt.utils.load(path), maximize);
     }
 

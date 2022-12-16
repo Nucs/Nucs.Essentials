@@ -14,11 +14,11 @@
         <Description>A wrapper around skopt to perform bayesian optimization</Description>
         <Copyright>Eli Belash / Nucs</Copyright>
         <PackageLicenseUrl>https://choosealicense.com/licenses/mit/</PackageLicenseUrl>
-        <PackageTags>bayes,bayesian,optimization,skopt,nucs,elibelash</PackageTags>
+        <PackageTags>skopt,bayes,bayesian,optimization,nucs,elibelash,pythonnet</PackageTags>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/Nucs/Nucs.Essentials/tree/main/src/Nucs.Optimization</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Nucs/Nucs.Essentials/tree/main/src/Nucs.Optimization</RepositoryUrl>
-        <PackageVersion>1.2.0</PackageVersion>
+        <PackageVersion>2.0.0</PackageVersion>
         <PackageReleaseNotes></PackageReleaseNotes>
     </PropertyGroup>
 

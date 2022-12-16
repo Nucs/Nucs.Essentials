@@ -7,7 +7,7 @@ using DotNext.Threading;
 using DotNext.Threading.Tasks;
 using FluentAssertions;
 using Nucs.Optimization;
-using Nucs.Optimization.Analayzer;
+using Nucs.Optimization.Analyzer;
 using Nucs.Optimization.Attributes;
 using Nucs.Threading;
 using Python.Runtime;

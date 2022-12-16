@@ -1,4 +1,4 @@
-using Nucs.Optimization.Analayzer;
+using Nucs.Optimization.Analyzer;
 using Nucs.Optimization.Helper;
 using Python.Runtime;
 

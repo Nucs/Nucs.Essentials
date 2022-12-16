@@ -1,7 +1,7 @@
 using Nucs.Optimization.Attributes;
 using Python.Runtime;
 
-namespace Nucs.Optimization.Analayzer;
+namespace Nucs.Optimization.Analyzer;
 
 public abstract class NumericalParameterType : ParameterType {
     protected NumericalParameterType(string name, TypeCode type, DimensionAttribute space) : base(name, type, space) { }

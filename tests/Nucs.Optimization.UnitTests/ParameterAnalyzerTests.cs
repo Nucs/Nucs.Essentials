@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using DotNext.Threading;
 using DotNext.Threading.Tasks;
 using FluentAssertions;
-using Nucs.Optimization.Analayzer;
+using Nucs.Optimization.Analyzer;
 using Nucs.Threading;
 using Xunit;
 using AsyncCountdownEvent = Nucs.Threading.AsyncCountdownEvent;

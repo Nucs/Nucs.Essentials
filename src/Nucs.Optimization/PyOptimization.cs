@@ -1,4 +1,4 @@
-using Nucs.Optimization.Analayzer;
+using Nucs.Optimization.Analyzer;
 using Nucs.Optimization.Attributes;
 using Nucs.Optimization.Helper;
 using Python.Runtime;
@@ -125,26 +125,5 @@ public abstract class PyOptimization<TParams> : IDisposable where TParams : clas
     public void Dispose() {
         Dispose(true);
         GC.SuppressFinalize(this);
-    }
-}
-
-public class OptimizeResult<TParams> where TParams : class, new() {
-    public TParams Best { get; set; }
-    public double BestScore { get; set; }
-    public (TParams Parameters, double Score)[] Iterations { get; set; }
-
-    public OptimizeResult(dynamic result, bool maximize) {
-        using dynamic helper = PyModule.FromString("helper", EmbeddedResourceHelper.ReadEmbeddedResource("opt_helpers.py")!);
-        BestScore = ((double) result.fun) * (maximize ? -1 : 1);
-        Best = ParametersAnalyzer<TParams>.Populate((List<Tuple<string, object>>) helper.unbox_params(ParametersAnalyzer<TParams>.ParameterNames, result.x)
-                                                                                        .AsManagedObject(typeof(List<Tuple<string, object>>)));
-        var results = (int)result.func_vals.__len__();
-        Iterations = new (TParams Parameters, double Score)[results];
-        for (var i = 0; i < results; i++) {
-            var score = ((double) result.func_vals[i]) * (maximize ? -1 : 1);;
-            var parameters = ParametersAnalyzer<TParams>.Populate((List<Tuple<string, object>>) helper.unbox_params(ParametersAnalyzer<TParams>.ParameterNames, result.x_iters[i])
-                                                                                                      .AsManagedObject(typeof(List<Tuple<string, object>>)));
-            Iterations[i] = (parameters, score);
-        }
     }
 }

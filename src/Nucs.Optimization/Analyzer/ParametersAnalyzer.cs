@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Nucs.Optimization.Attributes;
 
-namespace Nucs.Optimization.Analayzer;
+namespace Nucs.Optimization.Analyzer;
 
 public static class ParametersAnalyzer<TParams> where TParams : class, new() {
     public static readonly SortedDictionary<string, ParameterType> Parameters = new SortedDictionary<string, ParameterType>();

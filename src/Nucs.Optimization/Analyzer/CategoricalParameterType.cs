@@ -1,6 +1,6 @@
 using Nucs.Optimization.Attributes;
 
-namespace Nucs.Optimization.Analayzer;
+namespace Nucs.Optimization.Analyzer;
 
 public abstract class CategoricalParameterType : ParameterType {
     public abstract object[] ObjectValues { get; }

@@ -3,14 +3,15 @@ using System.Runtime.CompilerServices;
 using Nucs.Configuration;
 
 namespace Nucs {
-    public interface IPriceBucket {
-        IPriceBucket New(Array buckets, Array values);
+    public interface IRangeBuckets { 
+
+        static abstract IRangeBuckets New(Array buckets, Array values);
     }
 
     /// <summary>
-    ///     Price bucket holding values to categories (buckets)
+    ///     A range of continous buckets holding values to categories (buckets) based on given <typeparamref name="TBucket"/>.
     /// </summary>
-    public readonly struct PriceBucket<TBucket, TValue> : IPriceBucket where TBucket : unmanaged, IComparable<TBucket> {
+    public readonly struct RangeBuckets<TBucket, TValue> : IRangeBuckets where TBucket : unmanaged, IComparable<TBucket> {
         /// <summary>
         ///     The price groups aka buckets
         /// </summary>
@@ -21,7 +22,7 @@ namespace Nucs {
         /// </summary>
         public readonly TValue[] Values;
 
-        public PriceBucket(TBucket[] buckets, TValue[] values) {
+        public RangeBuckets(TBucket[] buckets, TValue[] values) {
             Buckets = buckets;
             Values = values;
             if (buckets.Length != values.Length)
@@ -30,7 +31,7 @@ namespace Nucs {
 
         public readonly TValue this[TBucket referenceValue, bool inclusive = false] {
             [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-            get { return Value(referenceValue, inclusive); }
+            get => Value(referenceValue, inclusive);
         }
 
         /// <summary>
@@ -61,8 +62,9 @@ namespace Nucs {
         }
 
 
-        public readonly IPriceBucket New(Array buckets, Array values) {
-            return new PriceBucket<TBucket, TValue>((TBucket[]) buckets, (TValue[]) values);
+
+        public static IRangeBuckets New(Array buckets, Array values) {
+            return new RangeBuckets<TBucket, TValue>((TBucket[]) buckets, (TValue[]) values);
         }
     }
 }

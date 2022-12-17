@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Nucs.Optimization.Attributes;
 
 /// <summary>
@@ -9,10 +11,12 @@ public enum Prior {
     /// <summary>
     ///     If "uniform", integers are sampled uniformly between the lower and upper bounds.
     /// </summary>
+    [Description("uniform")]
     Uniform,
 
     /// <summary>
     ///     If "log-uniform", integers are sampled uniformly between log(lower, base) and log(upper, base) where log has base base.
     /// </summary>
+    [Description("log-uniform")]
     LogUniform,
 }

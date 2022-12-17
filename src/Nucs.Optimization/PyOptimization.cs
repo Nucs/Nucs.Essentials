@@ -70,14 +70,14 @@ public abstract class PyOptimization<TParams> : IDisposable where TParams : clas
                         //space.Real (min, max, name='');
                         _searchSpace.Append(skopt_space.Real(low: space.GetLow(), high: space.GetHigh(),
                                                              name: parameter.Key,
-                                                             prior: space.Prior.AsString().ToLowerInvariant(),
+                                                             prior: space.Prior.AsString(EnumFormat.Description),
                                                              @base: space.Base,
                                                              transform: space.Transform.AsString().ToLowerInvariant()));
                     } else {
                         //space.Integer(min, max, name='');
                         _searchSpace.Append(skopt_space.Integer(low: space.GetLow(), high: space.GetHigh(),
                                                                 name: parameter.Key,
-                                                                prior: space.Prior.AsString().ToLowerInvariant(),
+                                                                prior: space.Prior.AsString(EnumFormat.Description),
                                                                 @base: space.Base,
                                                                 transform: space.Transform.AsString().ToLowerInvariant()));
                     }

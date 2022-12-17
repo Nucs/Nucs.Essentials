@@ -1,99 +1,24 @@
-```C#
-using Nucs.Optimization;
-using Nucs.Optimization.Attributes;
-using Python.Runtime;
-using System.Runtime.Serialization;
-using Nucs.Optimization.Attributes;
 
-//define parameters in a record/class
-public record Parameters {
-    [Range<int>(0, int.MaxValue)]
-    public int Seed; //range of 0 to int.MaxValue
 
-    [Range<double>(0, double.MaxValue)]
-    public double FloatSeed; //range of 0 to int.MaxValue
+# <img src="https://i.imgur.com/BOExs52.png" width="25" style="margin: 5px 0px 0px 10px"/> Nucs.Optimization
+[![Nuget downloads](https://img.shields.io/nuget/vpre/Nucs.Optimization.svg)](https://www.nuget.org/packages/Nucs.Essentials/)
+[![NuGet](https://img.shields.io/nuget/dt/Nucs.Optimization.svg)](https://github.com/Nucs/Nucs.Essentials)
+[![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/Nucs/Essentials/blob/master/LICENSE)
 
-    [Values("A", "B", "C")]
-    public string Categories; //one of "A", "B", "C"
+A .NET binding using [pythonnet](https://github.com/pythonnet/pythonnet) for [skopt (scikit-optimize)](https://scikit-optimize.github.io/) - an optimization library with support to dynamic search spaces through generic binding.<br/>
 
-    [Values(1f, 2f, 3f)]
-    public float NumericalCategories { get; set; } //one of 1f, 2f, 3f
+Available Algorithms:
+- [x] [Random Search](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Optimization/PyRandomOptimization.cs)
+- [x] [Bayesian Optimization](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Optimization/PyBayesianOptimization.cs)
+- [x] [Random Forest Optimization](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Optimization/PyForestOptimization.cs)
+- [x] [Gradient Boosting Regression Trees (Gbrt)](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Optimization/PyGbrtOptimization.cs)
 
-    public bool UseMethod; //true or false
+*Source code can be, [found here](https://github.com/Nucs/Nucs.Essentials/tree/main/src/Nucs.Optimization)*
 
-    public SomeEnum AnEnum; //one of the enum values ("A", "B", "C")
 
-    [Values(SomeEnum.A, SomeEnum.B)]
-    public SomeEnum AnEnumWithValues; //one of the enum values ("A", "B")
+### Installation
 
-    [IgnoreDataMember]
-    public bool Ignored; //will be ignored entirely
-    
-    [IgnoreDataMember]
-    public bool IgnoredProperty { get; set; } //will be ignored entirely
-
-    public override string ToString() {
-        return $"{nameof(Seed)}: {Seed}, {nameof(Categories)}: {Categories}, {nameof(UseMethod)}: {UseMethod}, {nameof(AnEnum)}: {AnEnum}, {nameof(AnEnumWithValues)}: {AnEnumWithValues}, {nameof(Ignored)}: {Ignored}, {nameof(NumericalCategories)}: {NumericalCategories}";
-    }
-}
-
-public enum SomeEnum {
-    A,
-    B,
-    C
-}
-```
-
-Define Score function, Configure python runtime and run the optimization:
-
-```C#
-
-//blackbox scoring function
-[Maximize] //or Minimize which is default.
-static double ScoreFunction(Parameters parameters) {
-    //calculate score
-    var res = (parameters.Seed * parameters.NumericalCategories * (parameters.UseMethod ? 1 : -1)) / 1000000;
-    Console.WriteLine($"Score: {res}, Parameters: {parameters}"); //will report the score and the parameters after each run
-    return res;
-}
-
-//configure python runtime
-Runtime.PythonDLL = Environment.ExpandEnvironmentVariables("%APPDATA%\\..\\Local\\Programs\\Python\\Python38\\python38.dll");
-PythonEngine.Initialize();
-PythonEngine.BeginAllowThreads();
-using var py = Py.GIL();
-
-//run optimization
-var opt = new PyBasyesianOptimization<Parameters>(ScoreFunction);
-(double Score, Parameters Parameters) = opt.Search(n_calls: 15, n_random_starts: 10, verbose: false);
-Console.WriteLine($"Best Score: {Score} for {Parameters}");
-```
-
-Output:
-
-```
-Score: -4017.2786, Parameters: Seed: 1339092842, Categories: C, UseMethod: False, AnEnum: B, AnEnumWithValues: B, Ignored: False, NumericalCategories: 3
-Score: -3488.238, Parameters: Seed: 1744119064, Categories: B, UseMethod: False, AnEnum: B, AnEnumWithValues: A, Ignored: False, NumericalCategories: 2
-Score: 1581.5854, Parameters: Seed: 790792685, Categories: B, UseMethod: True, AnEnum: B, AnEnumWithValues: B, Ignored: False, NumericalCategories: 2
-Score: 3353.1504, Parameters: Seed: 1117716876, Categories: B, UseMethod: True, AnEnum: A, AnEnumWithValues: B, Ignored: False, NumericalCategories: 3
-Score: -682.3045, Parameters: Seed: 227434855, Categories: B, UseMethod: False, AnEnum: B, AnEnumWithValues: B, Ignored: False, NumericalCategories: 3
-Score: -696.08746, Parameters: Seed: 696087514, Categories: A, UseMethod: False, AnEnum: A, AnEnumWithValues: B, Ignored: False, NumericalCategories: 1
-Score: 2633.0874, Parameters: Seed: 1316543750, Categories: C, UseMethod: True, AnEnum: A, AnEnumWithValues: A, Ignored: False, NumericalCategories: 2
-Score: 769.126, Parameters: Seed: 769125922, Categories: B, UseMethod: True, AnEnum: A, AnEnumWithValues: B, Ignored: False, NumericalCategories: 1
-Score: 4118.656, Parameters: Seed: 2059327873, Categories: A, UseMethod: True, AnEnum: B, AnEnumWithValues: A, Ignored: False, NumericalCategories: 2
-Score: 2038.8102, Parameters: Seed: 1019405123, Categories: B, UseMethod: True, AnEnum: B, AnEnumWithValues: B, Ignored: False, NumericalCategories: 2
-Score: 6442.451, Parameters: Seed: 2147483647, Categories: C, UseMethod: True, AnEnum: C, AnEnumWithValues: B, Ignored: False, NumericalCategories: 3
-Score: 6442.451, Parameters: Seed: 2147483647, Categories: A, UseMethod: True, AnEnum: A, AnEnumWithValues: A, Ignored: False, NumericalCategories: 3
-Score: 6442.451, Parameters: Seed: 2147483647, Categories: A, UseMethod: True, AnEnum: C, AnEnumWithValues: A, Ignored: False, NumericalCategories: 3
-Score: 6442.451, Parameters: Seed: 2147483647, Categories: A, UseMethod: True, AnEnum: A, AnEnumWithValues: B, Ignored: False, NumericalCategories: 3
-Score: 6442.451, Parameters: Seed: 2147483647, Categories: C, UseMethod: True, AnEnum: A, AnEnumWithValues: A, Ignored: False, NumericalCategories: 3
-Best Score: 6442.451171875 for Seed: 2147483647, Categories: C, UseMethod: True, AnEnum: C, AnEnumWithValues: B, Ignored: False, NumericalCategories: 3
-
-```
-
-Installation:
-
-* Python 3.8 due to the fact that pythonnet doesn't support python 3.9 and beyond yet.
+* Python 3.8+
     ```sh
     numpy>=1.23.5
     pythonnet>=3.0.1
@@ -107,3 +32,82 @@ Installation:
     ```sh
     PM> Install-Package Nucs.Optimization
     ```
+
+### Getting Started
+
+
+Declare a parameters class/record for the optimization search space.</br>
+Annotate it with IntegerSpace / RealSpace / CategoricalSpace attributes. </br>
+Non-annotated parameters will be implicitly included by default.
+
+```C#
+
+[Parameters(Inclusion = ParametersInclusion.ImplicitAndExplicit)] //include all annotated and non-annotated
+public record Parameters {
+    [IntegerSpace<int>(1, int.MaxValue, Prior = Prior.LogUniform, Base = 2, Transform = NumericalTransform.Normalize)]
+    public int Seed; //range of 0 to int.MaxValue (including)
+
+    [RealSpace<double>(0, Math.PI)]
+    public double FloatSeed; //range of 0 to int.MaxValue (including)
+
+    [CategoricalSpace<float>(1f, 2f, 3f)]
+    public float NumericalCategories { get; set; } //one of 1f, 2f, 3f
+
+    [CategoricalSpace<double>(1d, 10d, 100d, 1000d)]
+    public double LogNumericalCategories { get; set; } //one of 1d, 10d, 100d, 1000d
+
+    [CategoricalSpace<string>("A", "B", "C", Transform = CategoricalTransform.Identity)]
+    public string Categories; //one of "A", "B", "C"
+
+    [CategoricalSpace<bool>] //optional, will be included implicitly
+    public bool UseMethod; //true or false
+
+    [CategoricalSpace<SomeEnum>(SomeEnum.A, SomeEnum.B, SomeEnum.C)]
+    public SomeEnum AnEnum; //one of the enum values ("A", "B", "C")
+
+    /// string will be parsed to SomeEnum. Prior provides the priority of each possible value. 'B' will have 80% priority of being selected.
+    [CategoricalSpace<SomeEnum>("A", "B", Prior = new double[] {0.2, 0.8})] 
+    public SomeEnum AnEnumWithValues; //one of the enum values ("A", "B")
+
+    public SomeEnum AllValuesOfEnum; //one of any of the values of the enum
+        
+    [IgnoreDataMember]
+    public bool Ignored; //will be ignored entirely
+}
+
+public enum SomeEnum { A, B, C }
+
+```
+
+```C#
+//setup python runtime
+Runtime.PythonDLL = Environment.ExpandEnvironmentVariables("%APPDATA%\\..\\Local\\Programs\\Python\\Python38\\python38.dll");
+PythonEngine.Initialize();
+PythonEngine.BeginAllowThreads();
+using var py = Py.GIL(); //no GIL is being taken inside. has to be taken outside.
+
+//declare a function to optimize
+[Maximize] //or [Minimize]
+double ScoreFunction(Parameters parameters) {
+    return (parameters.Seed * parameters.NumericalCategories * (parameters.UseMethod ? 1 : -1) * Math.Sin(0.05+parameters.FloatSeed)) / 1000000;
+}
+
+//construct an optimizer
+var opt = new PyBayesianOptimization<Parameters>(ScoreFunction);
+var opt2 = new PyForestOptimization<Parameters>(ScoreFunction);
+var opt3 = new PyRandomOptimization<Parameters>(ScoreFunction);
+var opt4 = new PyGbrtOptimization<Parameters>(ScoreFunction);
+
+//(optional) prepare callbacks
+var callbacks = new PyOptCallback[] { new IterationCallback<Parameters>(maximize: true, (iteration, parameters, score) => {
+    Console.WriteLine($"[{iteration}] Score: {score}, Parameters: {parameters}");
+})};
+
+//run optimizer of choice (Search, SearchTop, SearchAll)
+double Score;
+Parameters Parameters;
+(Score, Parameters) = opt.Search(n_calls: 100, n_random_starts: 10, verbose: false, callbacks: callbacks);
+(Score, Parameters) = opt2.Search(n_calls: 100, n_random_starts: 10, verbose: false, callbacks: callbacks);
+(Score, Parameters) = opt3.Search(n_calls: 100, verbose: false, callbacks: callbacks);
+(Score, Parameters) = opt4.Search(n_calls: 100, n_random_starts: 10, verbose: false, callbacks: callbacks);
+```

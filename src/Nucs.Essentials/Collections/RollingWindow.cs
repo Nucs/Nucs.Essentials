@@ -27,13 +27,23 @@ namespace Nucs.Collections {
         ///     The latest datapoint
         /// </summary>
         
-        public T Latest => this[(int) (Math.Min(_samples, Count) - 1)];
+        public T Latest {
+            get {
+                (T[] arr, int count) = Data;
+                return arr[(count + _tail - ((int) (Math.Min(_samples, count) - 1)) - 1) % count];
+            }
+        }
 
         /// <summary>
         ///     The newest datapoint
         /// </summary>
         
-        public T Newest => Data[(Count + _tail - 1) % Count];
+        public T Newest {
+            get {
+                (T[] arr, int count) = Data;
+                return arr[(count + _tail - 1) % count];
+            }
+        }
 
         /// <summary>
         ///     Initializes a new instance of the RollwingWindow class with the specified window size.
@@ -58,9 +68,8 @@ namespace Nucs.Collections {
         }
 
         /// <summary>
-        ///     Gets the size of this window
+        ///     Gets the size/capacity of this window
         /// </summary>
-        
         public int Size { get; }
 
         /// <summary>
@@ -114,7 +123,8 @@ namespace Nucs.Collections {
                     );
                 }
                 #endif
-                return Data[(Count + _tail - i - 1) % Count];
+                (T[] arr, int count) = Data;
+                return arr[(count + _tail - i - 1) % count];
             }
             set {
                 #if DEBUG
@@ -122,7 +132,8 @@ namespace Nucs.Collections {
                     throw new ArgumentOutOfRangeException(nameof(i), i, $"Must be between 0 and {Count - 1}");
                 }
                 #endif
-                Data[(Count + _tail - i - 1) % Count] = value;
+                (T[] arr, int count) = Data;
+                arr[(count + _tail - i - 1) % count] = value;
             }
         }
 
@@ -163,11 +174,12 @@ namespace Nucs.Collections {
         /// <param name="item">The item to be added</param>
         public T Push(T item) {
             _samples++;
-            if (Size == Data._count) {
+            (T[] arr, int count) = Data;
+            if (Size == count) {
                 // keep track of what's the last element
                 // so we can reindex on this[ int ]
-                _mostRecentlyRemoved = Data._arr[_tail];
-                Data._arr[_tail] = item;
+                _mostRecentlyRemoved = arr[_tail];
+                arr[_tail] = item;
                 _tail = (_tail + 1) % Size;
                 return _mostRecentlyRemoved;
             } else {

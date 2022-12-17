@@ -72,8 +72,6 @@ namespace Nucs {
         public static readonly TaskCompletionSource HasSystemInitializedTask = new TaskCompletionSource();
 
 
-        public static readonly SharedXmlConfigProvider ConfigProvider;
-
         /// <summary>
         ///     List of all known XML paths in currently running system.
         /// </summary>
@@ -128,12 +126,7 @@ namespace Nucs {
                     ExternalIpAddressTask = new LazyTask<IPAddress>(GetExternalIpAddress, LazyThreadSafetyMode.PublicationOnly);
                 } finally {
                     Types.Setup();
-                    var cachedCfgs = new SharedXmlConfigProvider();
-
-                    ConfigProvider = cachedCfgs;
                 }
-
-                //set up static api for Polymorphism.Eval
             } catch (Exception e) {
                 Debug.WriteLine(e.ToString());
                 throw;

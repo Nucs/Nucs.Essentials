@@ -8,13 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Nucs.Collections {
-    // Decompiled with JetBrains decompiler
-    // Type: System.Collections.Generic.ExposedQueue`1
-    // Assembly: System.Collections, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
-    // MVID: 9A40C45A-BB02-45B9-9BD3-DCD356A94F97
-    // Assembly location: C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.7\System.Collections.dll
-
-
     internal sealed class ExposedQueueDebugView<T> {
         private readonly ExposedQueue<T> _queue;
 

@@ -31,13 +31,11 @@ namespace Nucs.Collections.Structs {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         public readonly bool IsNull => _arr == null;
 
-
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         public readonly bool IsNullOrEmpty {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return _arr == null || _count == 0; }
         }
-
 
         internal readonly Span<T> AsUnlockedSpan => new Span<T>(_arr, 0, _count);
 
@@ -68,7 +66,6 @@ namespace Nucs.Collections.Structs {
             arr = _arr;
             count = _count;
         }
-
 
         public StructList(T[] array, int count) {
             _arr = array;

@@ -19,12 +19,7 @@ namespace Nucs.Reflection {
         public static readonly Dictionary<string, Expression> StaticToStringGettersExpressions = new();
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
-        public static void Preload() {
-            // ReSharper disable once CoVariantArrayConversion
-            Preload(AutoConfig.StrategyProperties(typeof(T)));
-            // ReSharper disable once CoVariantArrayConversion
-            Preload(AutoConfig.StrategyFields(typeof(T)));
-        }
+        public static void Initialize() { }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
         public static void PreloadStatics() {

@@ -49,7 +49,7 @@ namespace Nucs.Reflection {
                                        Expression.Assign(dictionaryParameter, Expression.New(typeof(TDictionary)))));
 
             //  handle each property
-            PropertyInfo[] props = AutoConfig.StrategyProperties(typeof(T));
+            PropertyInfo[] props = typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.CanRead && p.CanWrite).ToArray();
             PropertyInfo? dictionaryIndexer = typeof(TDictionary).GetProperty("Item");
             if (dictionaryIndexer == null || dictionaryIndexer.GetIndexParameters().Length != 1)
                 throw new ArgumentException(nameof(dictionaryIndexer));
@@ -113,7 +113,7 @@ namespace Nucs.Reflection {
         internal static MethodInfo StaticPoolGetter(Type type) {
             return typeof(PooledStrongBox<>).MakeGenericType(type).GetMethods()
                                             .FirstOrDefault(g => g.Name == "Get"
-                                                                 && g.GetParameters() is { Length: >0 } && !g.GetParameters()[0].ParameterType.IsByRef);
+                                                                 && g.GetParameters() is { Length: > 0 } && !g.GetParameters()[0].ParameterType.IsByRef);
         }
 
         private static IEnumerable<T> Yield<T>(T obj) {

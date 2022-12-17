@@ -41,7 +41,7 @@ public class OptimizationCallbackTests : PythonTest {
         ParametersAnalyzer<Parameters>.Initialize();
         StrongBox<int> counter = new(0);
 
-        void Callback(Parameters parameters, double score) {
+        void Callback(int iterations, Parameters parameters, double score) {
             counter.Value++;
         }
 
@@ -77,7 +77,7 @@ public class OptimizationCallbackTests : PythonTest {
         ParametersAnalyzer<Parameters>.Initialize();
         StrongBox<int> counter = new(0);
 
-        void Callback(Parameters parameters, double score) =>
+        void Callback(int iterations, Parameters parameters, double score) =>
             ++counter.Value;
 
         var opt = new PyRandomOptimization<Parameters>(ScoreFunction);
@@ -94,7 +94,7 @@ public class OptimizationCallbackTests : PythonTest {
         ParametersAnalyzer<Parameters>.Initialize();
         StrongBox<int> counter = new(0);
 
-        void Callback(Parameters parameters, double score) =>
+        void Callback(int iterations, Parameters parameters, double score) =>
             ++counter.Value;
 
         var opt = new PyBayesianOptimization<Parameters>(ScoreFunction);

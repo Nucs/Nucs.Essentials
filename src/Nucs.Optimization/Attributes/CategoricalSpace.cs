@@ -70,7 +70,11 @@ public sealed class CategoricalSpace<T> : CategoricalSpace {
 
     public override Type DType => typeof(T);
 
-    public override object[] ObjectCategories => IsEnum ? (object[]) Categories.Select(t => (object) t.ToString()).ToArray() : (object[]) Categories.Select(t => (object) t).ToArray();
+    public override object[] ObjectCategories => IsEnum
+        ? (object[]) Categories.Select(t => (object) t.ToString()).ToArray()
+        : typeof(T) == typeof(bool)
+            ? new object[] { true, false }
+            : (object[]) Categories.Select(t => (object) t).ToArray();
 
     public override ValidationResult IsValid(object value) {
         foreach (var category in Categories) {

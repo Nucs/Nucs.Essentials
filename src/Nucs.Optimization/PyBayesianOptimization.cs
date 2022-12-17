@@ -5,7 +5,7 @@ using Python.Runtime;
 
 namespace Nucs.Optimization;
 
-public static class PyBasyesianOptimization {
+public static class PyBayesianOptimization {
     public enum InitialPointGenerator {
         random,
         sobol,
@@ -37,14 +37,14 @@ public static class PyBasyesianOptimization {
 public class PyBayesianOptimization<TParams> : PyOptimization<TParams> where TParams : class, new() {
     public PyBayesianOptimization(ScoreFunctionDelegate blackBoxScoreFunction, bool maximize = false, FileInfo? dumpResults = null) : base(blackBoxScoreFunction, maximize, dumpResults) { }
 
-    public (double Score, TParams Parameters) Search(int n_calls, int n_random_starts, PyBasyesianOptimization.InitialPointGenerator initial_point_generator = PyBasyesianOptimization.InitialPointGenerator.random,
-                                                     PyBasyesianOptimization.AcqFunc acq_func = PyBasyesianOptimization.AcqFunc.gp_hedge, PyBasyesianOptimization.AcqOptimizer acq_optimizer = PyBasyesianOptimization.AcqOptimizer.lbfgs,
+    public (double Score, TParams Parameters) Search(int n_calls, int n_random_starts, PyBayesianOptimization.InitialPointGenerator initial_point_generator = PyBayesianOptimization.InitialPointGenerator.random,
+                                                     PyBayesianOptimization.AcqFunc acq_func = PyBayesianOptimization.AcqFunc.gp_hedge, PyBayesianOptimization.AcqOptimizer acq_optimizer = PyBayesianOptimization.AcqOptimizer.lbfgs,
                                                      int? random_state = null, int n_points = 10000, int n_restarts_optimizer = 5, double xi = 0.01d, double kappa = 1.96d, bool verbose = false, IEnumerable<PyOptCallback>? callbacks = null) {
         return SearchTop(1, n_calls, n_random_starts, initial_point_generator, acq_func, acq_optimizer, random_state, n_points, n_restarts_optimizer, xi, kappa, verbose, callbacks)[0];
     }
 
-    public OptimizeResult<TParams> SearchAll(int n_calls, int n_random_starts, PyBasyesianOptimization.InitialPointGenerator initial_point_generator = PyBasyesianOptimization.InitialPointGenerator.random,
-                                             PyBasyesianOptimization.AcqFunc acq_func = PyBasyesianOptimization.AcqFunc.gp_hedge, PyBasyesianOptimization.AcqOptimizer acq_optimizer = PyBasyesianOptimization.AcqOptimizer.lbfgs,
+    public OptimizeResult<TParams> SearchAll(int n_calls, int n_random_starts, PyBayesianOptimization.InitialPointGenerator initial_point_generator = PyBayesianOptimization.InitialPointGenerator.random,
+                                             PyBayesianOptimization.AcqFunc acq_func = PyBayesianOptimization.AcqFunc.gp_hedge, PyBayesianOptimization.AcqOptimizer acq_optimizer = PyBayesianOptimization.AcqOptimizer.lbfgs,
                                              int? random_state = null, int n_points = 10000, int n_restarts_optimizer = 5, double xi = 0.01d, double kappa = 1.96d, bool verbose = false, IEnumerable<PyOptCallback>? callbacks = null) {
         using dynamic skopt = PyModule.Import("skopt");
         var result = skopt.gp_minimize(wrappedScoreMethod, _searchSpace, n_calls: n_calls, n_random_starts: n_random_starts,
@@ -57,8 +57,8 @@ public class PyBayesianOptimization<TParams> : PyOptimization<TParams> where TPa
         return new OptimizeResult<TParams>(result, _maximize);
     }
 
-    public (double Score, TParams Parameters)[] SearchTop(int topResults, int n_calls, int n_random_starts, PyBasyesianOptimization.InitialPointGenerator initial_point_generator = PyBasyesianOptimization.InitialPointGenerator.random,
-                                                          PyBasyesianOptimization.AcqFunc acq_func = PyBasyesianOptimization.AcqFunc.gp_hedge, PyBasyesianOptimization.AcqOptimizer acq_optimizer = PyBasyesianOptimization.AcqOptimizer.lbfgs,
+    public (double Score, TParams Parameters)[] SearchTop(int topResults, int n_calls, int n_random_starts, PyBayesianOptimization.InitialPointGenerator initial_point_generator = PyBayesianOptimization.InitialPointGenerator.random,
+                                                          PyBayesianOptimization.AcqFunc acq_func = PyBayesianOptimization.AcqFunc.gp_hedge, PyBayesianOptimization.AcqOptimizer acq_optimizer = PyBayesianOptimization.AcqOptimizer.lbfgs,
                                                           int? random_state = null, int n_points = 10000, int n_restarts_optimizer = 5, double xi = 0.01d, double kappa = 1.96d, bool verbose = false, IEnumerable<PyOptCallback>? callbacks = null) {
         using dynamic skopt = PyModule.Import("skopt");
         using dynamic np = PyModule.Import("numpy");

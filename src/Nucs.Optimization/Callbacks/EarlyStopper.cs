@@ -21,7 +21,7 @@ public class EarlyStopper<TParams> : PyOptCallback where TParams : class, new() 
         This = helperModule.Get("EarlyStopperWrapper").Invoke(Array.Empty<PyObject>(), Py.kw("callback", UnboxResults));
     }
 
-    public EarlyStopper(StopConditionDelegate callback, bool maximize) : this(PyModule.FromString("helper", EmbeddedResourceHelper.ReadEmbeddedResource("opt_helpers.py")!), maximize, callback) { }
+    public EarlyStopper(bool maximize, StopConditionDelegate callback) : this(PyModule.FromString("helper", EmbeddedResourceHelper.ReadEmbeddedResource("opt_helpers.py")!), maximize, callback) { }
 
     private bool? UnboxResults(dynamic result) {
         dynamic _helper = _helperModule;

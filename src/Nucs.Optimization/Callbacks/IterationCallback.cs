@@ -11,8 +11,8 @@ public class IterationCallback<TParams> : PyOptCallback where TParams : class, n
     protected readonly bool _maximize;
     protected readonly PyModule _helperModule;
     public readonly StopConditionDelegate Callback;
-
-    public delegate void StopConditionDelegate(TParams parameters, double score);
+    private int _iteration;
+    public delegate void StopConditionDelegate(int iteration, TParams parameters, double score);
 
     public IterationCallback(PyModule helperModule, bool maximize, StopConditionDelegate callback) {
         _maximize = maximize;
@@ -21,7 +21,7 @@ public class IterationCallback<TParams> : PyOptCallback where TParams : class, n
         This = helperModule.Get("EarlyStopperWrapper").Invoke(Array.Empty<PyObject>(), Py.kw("callback", UnboxResults));
     }
 
-    public IterationCallback(StopConditionDelegate callback, bool maximize) : this(PyModule.FromString("helper", EmbeddedResourceHelper.ReadEmbeddedResource("opt_helpers.py")!), maximize, callback) { }
+    public IterationCallback(bool maximize, StopConditionDelegate callback) : this(PyModule.FromString("helper", EmbeddedResourceHelper.ReadEmbeddedResource("opt_helpers.py")!), maximize, callback) { }
 
     private bool? UnboxResults(dynamic result) {
         dynamic _helper = _helperModule;
@@ -32,7 +32,7 @@ public class IterationCallback<TParams> : PyOptCallback where TParams : class, n
                                                                                                            .AsManagedObject(typeof(List<Tuple<string, object>>)));
         var score = (_maximize ? -1 : 1) * (double) result.func_vals[result.func_vals.__len__() - 1];
         //unbox results
-        Callback(parameters, score);
+        Callback(++_iteration, parameters, score);
         return null;
     }
 }

@@ -48,7 +48,7 @@ public class OptimizationCallbackTests : PythonTest {
         var opt = new PyRandomOptimization<Parameters>(ScoreFunction);
         //(double Score, Parameters Parameters) = opt.Search(n_calls: 100, 10, verbose: false);
 
-        (double score, Parameters parameters) = opt.Search(5000, random_state: 1337, callbacks: new[] { new IterationCallback<Parameters>(Callback, true) });
+        (double score, Parameters parameters) = opt.Search(5000, random_state: 1337, callbacks: new[] { new IterationCallback<Parameters>(true, Callback) });
         counter.Value.Should().BeGreaterThan(0);
     }
 
@@ -66,7 +66,7 @@ public class OptimizationCallbackTests : PythonTest {
         var opt = new PyRandomOptimization<Parameters>(ScoreFunction);
         //(double Score, Parameters Parameters) = opt.Search(n_calls: 100, 10, verbose: false);
 
-        (double score, Parameters parameters) = opt.Search(5000, random_state: 1337, callbacks: new[] { new EarlyStopper<Parameters>(Callback, true) });
+        (double score, Parameters parameters) = opt.Search(5000, random_state: 1337, callbacks: new[] { new EarlyStopper<Parameters>(true, Callback) });
         counter.Value.Should().Be(100);
     }
 
@@ -82,7 +82,7 @@ public class OptimizationCallbackTests : PythonTest {
 
         var opt = new PyRandomOptimization<Parameters>(ScoreFunction);
 
-        (double score, Parameters parameters) = opt.Search(5000, random_state: 1337, callbacks: new PyOptCallback[] { new DeadlineStopper(TimeSpan.FromSeconds(0.5)), new IterationCallback<Parameters>(Callback, true) });
+        (double score, Parameters parameters) = opt.Search(5000, random_state: 1337, callbacks: new PyOptCallback[] { new DeadlineStopper(TimeSpan.FromSeconds(0.5)), new IterationCallback<Parameters>(true, Callback) });
         Console.WriteLine(counter.Value.ToString());
         counter.Value.Should().BeLessThan(5000);
     }
@@ -101,7 +101,7 @@ public class OptimizationCallbackTests : PythonTest {
 
         (double score, Parameters parameters) = opt.Search(150, 100, random_state: 1337, callbacks: new PyOptCallback[] {
             new DeltaXStopper(1),
-            new IterationCallback<Parameters>(Callback, true)
+            new IterationCallback<Parameters>(true, Callback)
         });
         Console.WriteLine(counter.Value.ToString());
         counter.Value.Should().BeLessThan(140, "Must finish earlier");

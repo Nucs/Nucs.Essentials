@@ -1,5 +1,4 @@
 
-
 # <img src="https://i.imgur.com/BOExs52.png" width="25" style="margin: 5px 0px 0px 10px"/> Nucs.Optimization
 [![Nuget downloads](https://img.shields.io/nuget/vpre/Nucs.Optimization.svg)](https://www.nuget.org/packages/Nucs.Essentials/)
 [![NuGet](https://img.shields.io/nuget/dt/Nucs.Optimization.svg)](https://github.com/Nucs/Nucs.Essentials)

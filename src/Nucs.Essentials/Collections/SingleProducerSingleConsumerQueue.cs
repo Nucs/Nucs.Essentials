@@ -294,7 +294,7 @@ namespace Nucs.Collections {
                 for (Segment? segment = head; segment != null; segment = segment._next) {
                     var arr = segment._array;
                     if (arr != null)
-                        Array.Clear(arr);
+                        Array.Clear(arr, 0, arr.Length);
                 }
             }
         }

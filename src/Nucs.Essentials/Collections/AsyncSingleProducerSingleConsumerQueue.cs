@@ -28,7 +28,7 @@ public class AsyncSingleProducerSingleConsumerQueue<T> : IDisposable {
     #region Writer
 
     public void Enqueue(T item) {
-        _queues.Enqueue(item);
+        _queues.Enqueue(ref item);
         if (Interlocked.Increment(ref _count) == 1 && _notificationWaiters > 0)
             _notifier.TrySetResult();
     }

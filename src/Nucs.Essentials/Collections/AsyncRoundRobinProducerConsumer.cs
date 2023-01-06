@@ -69,7 +69,7 @@ public class AsyncRoundRobinProducerConsumer<T> {
         lock (this)
             _consumers.Add(consumer);
 
-        if (_pointer >= _consumers._count)
+        if (_pointer < _consumers._count)
             Interlocked.Increment(ref _pointer); //ensures 0 index is always used first.
     }
 

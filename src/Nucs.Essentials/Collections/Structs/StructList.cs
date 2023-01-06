@@ -257,7 +257,7 @@ namespace Nucs.Collections.Structs {
         }
 
         public bool Remove(T item, Func<T, T, bool> comparison) {
-            var i = IndexOfInternal(item);
+            var i = IndexOfInternal(item, comparison);
 
             if (i == -1)
                 return false;
@@ -368,16 +368,9 @@ namespace Nucs.Collections.Structs {
         private readonly int IndexOfInternal(T item, Func<T, T, bool> comparer) {
             var len = _count;
             var arr = _arr;
-            if (item is object) {
-                for (int i = 0; i < len; i++) {
-                    if (comparer(item, arr[i]))
-                        return i;
-                }
-            } else {
-                for (int i = 0; i < len; i++) {
-                    if (comparer.Equals(arr[i]))
-                        return i;
-                }
+            for (int i = 0; i < len; i++) {
+                if (comparer(item, arr[i]))
+                    return i;
             }
 
             return -1;
@@ -388,7 +381,7 @@ namespace Nucs.Collections.Structs {
             var arr = _arr;
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) {
                 for (int i = 0; i < len; i++) {
-                    if (Equals(item, arr[i]))
+                    if (object.Equals(item, arr[i]))
                         return i;
                 }
             } else {

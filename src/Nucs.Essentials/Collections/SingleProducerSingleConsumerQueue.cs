@@ -288,7 +288,15 @@ namespace Nucs.Collections {
         }
 
         public void Dispose() {
+            var head = _head;
             _head = _tail = default!;
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) {
+                for (Segment? segment = head; segment != null; segment = segment._next) {
+                    var arr = segment._array;
+                    if (arr != null)
+                        Array.Clear(arr);
+                }
+            }
         }
 
         /// <summary>A segment in the queue containing one or more items.</summary>

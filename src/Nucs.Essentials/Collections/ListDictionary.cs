@@ -30,7 +30,6 @@ namespace Nucs.Collections {
             Entries = existing ?? new List<(TKey Key, TValue Value)>();
         }
 
-        [JsonConstructor]
         public ListedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> existing) {
             Entries = new List<(TKey Key, TValue Value)>(existing.Select(kv => (kv.Key, kv.Value)));
         }

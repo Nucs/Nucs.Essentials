@@ -3,15 +3,11 @@ using System.Runtime.CompilerServices;
 using Nucs.Configuration;
 
 namespace Nucs {
-    public interface IRangeBuckets { 
-
-        static abstract IRangeBuckets New(Array buckets, Array values);
-    }
 
     /// <summary>
     ///     A range of continous buckets holding values to categories (buckets) based on given <typeparamref name="TBucket"/>.
     /// </summary>
-    public readonly struct RangeBuckets<TBucket, TValue> : IRangeBuckets where TBucket : unmanaged, IComparable<TBucket> {
+    public readonly struct RangeBuckets<TBucket, TValue> where TBucket : unmanaged, IComparable<TBucket> {
         /// <summary>
         ///     The price groups aka buckets
         /// </summary>
@@ -59,12 +55,6 @@ namespace Nucs {
 
             //never called
             throw new InvalidOperationException();
-        }
-
-
-
-        public static IRangeBuckets New(Array buckets, Array values) {
-            return new RangeBuckets<TBucket, TValue>((TBucket[]) buckets, (TValue[]) values);
         }
     }
 }

@@ -1,3 +1,4 @@
+#if NET6_0_OR_GREATER
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,3 +78,4 @@ public class AsyncSingleProducerSingleConsumerQueue<T> : IDisposable {
         _queues.Clear();
     }
 }
+#endif

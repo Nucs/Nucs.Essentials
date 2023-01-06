@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>Nucs</RootNamespace>
     <LangVersion>11</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -19,16 +18,20 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/Nucs/Nucs.Essentials</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Nucs/Nucs.Essentials</RepositoryUrl>
-    <PackageVersion>1.3.0</PackageVersion>
+    <PackageVersion>1.4.0</PackageVersion>
     <PackageReleaseNotes>Added ShardFrameCollection, ReusableStructQueue, ValueStringBuilder, StreamRowReader, RowReader</PackageReleaseNotes>
+    <TargetFrameworks>netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="C5" Version="2.5.3" />
-    <PackageReference Include="DotNext.Threading" Version="4.7.4" />
     <PackageReference Include="Enums.NET" Version="4.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.17" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.1'">
+    <PackageReference Include="DotNext.Threading" Version="4.7.4" />
   </ItemGroup>
 
 </Project>

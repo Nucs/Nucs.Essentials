@@ -2,6 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+#if !NET6_0_OR_GREATER
+using TaskCompletionSource = System.Threading.Tasks.TaskCompletionSource<bool>;
+#endif
 namespace Nucs.Threading {
     
     /// <summary>
@@ -10,7 +13,11 @@ namespace Nucs.Threading {
     ///     required logic has been handled. after OpenPassage called - all the other threads idling will continue. essentially allowing only the Nth passesRequired thread to act and let all the rest idle.
     /// </summary>
     public class PassageBarrier : IDisposable {
+        #if !NET6_0_OR_GREATER
         private TaskCompletionSource _barrier = new TaskCompletionSource();
+        #else
+        private TaskCompletionSource _barrier = new TaskCompletionSource();
+        #endif
         private volatile int _passesRequired;
         private int _passes;
 
@@ -25,7 +32,11 @@ namespace Nucs.Threading {
             var barrier = _barrier;
             if (Interlocked.Increment(ref _passes) == _passesRequired) {
                 _barrier = new TaskCompletionSource();
+                #if !NET6_0_OR_GREATER
+                barrier.TrySetResult(true);
+                #else
                 barrier.TrySetResult();
+                #endif
                 success = true;
                 return Task.CompletedTask;
             } else
@@ -54,7 +65,11 @@ namespace Nucs.Threading {
         }
 
         public void OpenPassage() {
+            #if !NET6_0_OR_GREATER
+            _barrier.TrySetResult(true);
+            #else
             _barrier.TrySetResult();
+            #endif
         }
 
         public void Reset(int? requiredPasses = null) {
@@ -66,7 +81,11 @@ namespace Nucs.Threading {
 
         public bool DecrementRequiredPasses() {
             if (Interlocked.Decrement(ref _passesRequired) == _passes) {
+                #if !NET6_0_OR_GREATER
+                _barrier.TrySetResult(true);
+                #else
                 _barrier.TrySetResult();
+                #endif
                 return true;
             }
 
@@ -75,7 +94,11 @@ namespace Nucs.Threading {
 
         public bool IncrementRequiredPasses() {
             if (Interlocked.Increment(ref _passesRequired) == _passes) {
+                #if !NET6_0_OR_GREATER
+                _barrier.TrySetResult(true);
+                #else
                 _barrier.TrySetResult();
+                #endif
                 return true;
             }
 
@@ -85,7 +108,11 @@ namespace Nucs.Threading {
         public bool SetRequiredPasses(int passes) {
             Interlocked.Exchange(ref _passesRequired, passes);
             if (passes == _passes) {
+                #if !NET6_0_OR_GREATER
+                _barrier.TrySetResult(true);
+                #else
                 _barrier.TrySetResult();
+                #endif
                 return true;
             }
 

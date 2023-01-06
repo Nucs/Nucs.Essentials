@@ -3,8 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Threading;
+#if !NET6_0_OR_GREATER
+using TaskCompletionSource = System.Threading.Tasks.TaskCompletionSource<bool>;
+#endif
 
 namespace Nucs.Threading;
+
 
 public delegate void ConcurrentThreadGunDelegate(int threadNumber);
 
@@ -16,7 +20,11 @@ public class ConcurrentThreadGun : IDisposable {
     private readonly SemaphoreSlim _barrierThreadstarted;
     private readonly ManualResetEventSlim _barrierCorestart;
     private readonly SemaphoreSlim _barrierDone;
+    #if !NET6_0_OR_GREATER
+    private readonly TaskCompletionSource<bool> _completionSource;
+    #else
     private readonly TaskCompletionSource _completionSource;
+    #endif
 
     /// <summary>
     ///     How many threads this gun fired together.
@@ -152,7 +160,12 @@ public class ConcurrentThreadGun : IDisposable {
             }
 
             PostRun?.Invoke(this);
+            
+            #if !NET6_0_OR_GREATER
+            _completionSource.TrySetResult(true);
+            #else
             _completionSource.TrySetResult();
+            #endif
             return;
         }
 
@@ -210,7 +223,11 @@ public class ConcurrentThreadGun : IDisposable {
 
         //checks after ended
         PostRun?.Invoke(this);
+        #if !NET6_0_OR_GREATER
+        _completionSource.TrySetResult(true);
+        #else
         _completionSource.TrySetResult();
+        #endif
     }
 
     public async Task RunAsync(params ConcurrentThreadGunDelegate[] workloads) {
@@ -242,7 +259,11 @@ public class ConcurrentThreadGun : IDisposable {
             }
 
             PostRun?.Invoke(this);
+            #if !NET6_0_OR_GREATER
+            _completionSource.TrySetResult(true);
+            #else
             _completionSource.TrySetResult();
+            #endif
             return;
         }
 
@@ -302,7 +323,11 @@ public class ConcurrentThreadGun : IDisposable {
 
         //checks after ended
         PostRun?.Invoke(this);
+        #if !NET6_0_OR_GREATER
+        _completionSource.TrySetResult(true);
+        #else
         _completionSource.TrySetResult();
+        #endif
     }
 
     public void Dispose() {

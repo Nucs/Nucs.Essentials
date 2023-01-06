@@ -68,10 +68,6 @@ namespace Nucs {
         /// </summary>
         public static readonly bool IsProduction;
 
-        public static bool HasSystemInitialized => HasSystemInitializedTask.Task.IsCompletedSuccessfully;
-        public static readonly TaskCompletionSource HasSystemInitializedTask = new TaskCompletionSource();
-
-
         /// <summary>
         ///     List of all known XML paths in currently running system.
         /// </summary>
@@ -122,8 +118,6 @@ namespace Nucs {
                     var cmdlines = Environment.CommandLine;
                     IsResearch = cmdlines.Contains("--research");
                     IsProduction = cmdlines.Contains("--prod") || cmdlines.Contains("--production");
-
-                    ExternalIpAddressTask = new LazyTask<IPAddress>(GetExternalIpAddress, LazyThreadSafetyMode.PublicationOnly);
                 } finally {
                     Types.Setup();
                 }
@@ -133,14 +127,9 @@ namespace Nucs {
             }
         }
 
-        public static LazyTask<IPAddress>? ExternalIpAddressTask;
-        public static byte[] ExternalIpBytes => ExternalIpAddressTask.Value.GetAwaiter().GetResult()?.GetAddressBytes();
         public static readonly CachedFilePool CachedFile = new CachedFilePool();
 
-        private static async Task<IPAddress> GetExternalIpAddress() {
-            #if !DEBUG
-            return default;
-            #endif
+        public static async Task<IPAddress> GetExternalIpAddress() {
             string result = string.Empty;
             string[] checkIpUrl = {
                 "https://checkip.amazonaws.com/",

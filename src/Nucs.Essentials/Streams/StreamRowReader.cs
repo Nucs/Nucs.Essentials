@@ -138,8 +138,10 @@ namespace Nucs.Extensions {
             if (_splitOptions == StringSplitOptions.None)
                 return newSlice;
 
+            #if NET6_0_OR_GREATER
             if (_splitOptions.HasFlag(StringSplitOptions.TrimEntries) && !newSlice.IsEmpty)
                 newSlice = newSlice.Trim();
+            #endif
 
             if (_splitOptions.HasFlag(StringSplitOptions.RemoveEmptyEntries) && newSlice.IsEmpty)
                 goto _lookupNext; //skip empty lines

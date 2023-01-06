@@ -4,7 +4,11 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
-
+#if NET6_0_OR_GREATER
+using UnsafeHelper = System.Runtime.CompilerServices.Unsafe;
+#else
+using UnsafeHelper = Nucs.Extensions.UnsafeHelper;
+#endif
 namespace Nucs.Collections;
 
 public sealed class ByteBufferView {
@@ -170,7 +174,7 @@ public readonly unsafe ref struct ByteBuffer {
     [EditorBrowsable(EditorBrowsableState.Never)]
     public ref byte GetPinnableReference() {
         // Ensure that the native code has just one forward branch that is predicted-not-taken.
-        ref byte ret = ref Unsafe.NullRef<byte>();
+        ref byte ret = ref UnsafeHelper.NullRef<byte>();
         if (Length != 0) ret = ref Pointer[0];
         return ref ret;
     }
@@ -302,7 +306,9 @@ public readonly unsafe ref struct ByteBuffer {
             return Array.Empty<byte>();
 
         var destination = new byte[Length];
-        Buffer.MemoryCopy(Pointer, Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(destination)), Length, Length);
+        fixed (byte* dest = destination)
+            Buffer.MemoryCopy(Pointer, dest, Length, Length);
+
         return destination;
     }
 

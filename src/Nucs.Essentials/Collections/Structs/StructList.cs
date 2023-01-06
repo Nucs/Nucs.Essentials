@@ -955,7 +955,9 @@ namespace Nucs.Collections.Structs {
 
             Array.Resize(ref _arr, _count);
         }
-
+        
+        #if NET6_0_OR_GREATER
+        
         /// <summary>
         /// Sorts the elements in the entire <see cref="Span{T}" /> using the <see cref="IComparable{T}" /> implementation
         /// of each element of the <see cref= "Span{T}" />
@@ -1057,6 +1059,8 @@ namespace Nucs.Collections.Structs {
         public void Sort<TKey>(Span<TKey> keys, Comparison<TKey> comparison) {
             MemoryExtensions.Sort(keys, AsSpan(), new ComparisonComparer<TKey>(comparison));
         }
+
+        #endif
 
         /// <summary>
         /// Searches an entire sorted <see cref="Span{T}"/> for the specified <paramref name="value"/>
@@ -2249,7 +2253,11 @@ namespace Nucs.Collections.Structs {
         }
 
         public readonly StructList<T> Clone(int additionalCapacity) {
+            #if NET6_0_OR_GREATER
             var copy = GC.AllocateUninitializedArray<T>(_arr.Length + additionalCapacity);
+            #else
+            var copy = new T[_arr.Length + additionalCapacity];
+            #endif
             Array.Copy(_arr, 0, copy, 0, _count);
             return new StructList<T>(copy, _count);
         }

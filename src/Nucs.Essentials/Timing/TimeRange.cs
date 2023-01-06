@@ -24,7 +24,6 @@ namespace Nucs.Timing {
         [JsonIgnore]
         public TimeRange Date => new TimeRange(Start.Date, End.Date);
 
-        [JsonConstructor]
         public TimeRange(DateTime start, DateTime end) {
             Start = start;
             End = end;

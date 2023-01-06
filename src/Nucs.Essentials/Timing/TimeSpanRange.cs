@@ -13,7 +13,6 @@ namespace Nucs.Timing {
         [JsonIgnore]
         public TimeSpan Duration => End - Start;
 
-        [JsonConstructor]
         public TimeSpanRange(TimeSpan start, TimeSpan end) {
             Start = start;
             End = end;

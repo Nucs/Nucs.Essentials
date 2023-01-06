@@ -5,7 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Nucs.Collections.Layouts;
 using Nucs.Collections.Structs;
-
+#if NET6_0_OR_GREATER
+using UnsafeHelper = System.Runtime.CompilerServices;
+#else
+using UnsafeHelper = Nucs.Extensions.UnsafeHelper;
+#endif
 namespace Nucs.Extensions {
     public static class Collections {
         /// <summary>
@@ -18,7 +22,7 @@ namespace Nucs.Extensions {
             arr[arr.Length - 1] = item;
             return arr;
         }
-
+        
         public static unsafe void Resize<T>(ref T[]? array, long newSize) {
             if (newSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(newSize));
@@ -37,17 +41,26 @@ namespace Nucs.Extensions {
                 // other way around), we can use Buffer.Memmove here.
 
                 T[] dst = new T[newSize];
+                
+                #if NET6_0_OR_GREATER
                 Buffer.MemoryCopy(
                     source: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(src)),
                     destination: Unsafe.AsPointer(ref MemoryMarshal.GetArrayDataReference(dst)),
                     destinationSizeInBytes: newSize,
                     sourceBytesToCopy: Math.Min(src.LongLength, newSize));
-
+                #else
+                Buffer.MemoryCopy(
+                    source: Unsafe.AsPointer(ref src[0]),
+                    destination: Unsafe.AsPointer(ref dst[0]),
+                    destinationSizeInBytes: newSize,
+                    sourceBytesToCopy: Math.Min(src.LongLength, newSize));
+                #endif
                 array = dst;
             }
 
             Debug.Assert(array != null);
         }
+
 
         /// <summary>
         ///     Similar to <see cref="Array.Resize{T}"/>, just for a memory block created by <see cref="Marshal.AllocHGlobal(int)"/>.
@@ -62,7 +75,7 @@ namespace Nucs.Extensions {
                 throw new ArgumentOutOfRangeException(nameof(newSize));
 
             byte* src = buffer; // local copy
-            if (Unsafe.IsNullRef(ref Unsafe.AsRef<byte>(src))) {
+            if (UnsafeHelper.IsNullRef(ref Unsafe.AsRef<byte>(src))) {
                 buffer = (byte*) Marshal.AllocHGlobal(new IntPtr(newSize));
                 bufferSize = newSize;
                 return;
@@ -86,7 +99,8 @@ namespace Nucs.Extensions {
                 bufferSize = newSize;
             }
         }
-
+        
+        
         /// <summary>
         ///     Iterates each <see cref="buckets"/> item, if its bigger than <see cref="referenceValue"/> then <see cref="values"/> of same index will be returned.
         /// </summary>

@@ -47,7 +47,7 @@ public class AsyncSingleProducerSingleConsumerQueue<T> : IDisposable {
         if (!_queues.TryDequeue(out result))
             return false;
 
-        if (Interlocked.Decrement(ref _count) == 0 && _notificationWaiters > 0)
+        if (Interlocked.Decrement(ref _count) == 0 && _notifier.IsCompleted)
             _notifier.Reset();
 
         return true;

@@ -8,10 +8,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Nucs.Collections {
-    
     [StructLayout(LayoutKind.Explicit, Size = 124)]
     internal struct PaddingFor32 { }
-    
+
     /// <summary>
     /// Provides a producer/consumer queue safe to be used by only one producer and one consumer concurrently.
     /// </summary>
@@ -286,6 +285,10 @@ namespace Nucs.Collections {
 
                 return count;
             }
+        }
+
+        public void Dispose() {
+            _head = _tail = default!;
         }
 
         /// <summary>A segment in the queue containing one or more items.</summary>

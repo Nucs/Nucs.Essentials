@@ -8,18 +8,21 @@ This library contains essential classes I use in production.<br/>
 Cloning and exploring this repository is the recommended way of learning how to use it.
 
 ### Installation
+Supports `netcoreapp3.1` `net6.0` `net7.0`
 ```sh
+
 PM> Install-Package Nucs.Essentials
+
 ```
 Overview
 ---
 All performance-oriented classes have a benchmark at [Nucs.Essentials.Benchmark](https://github.com/Nucs/Nucs.Essentials/tree/main/benchmark/Nucs.Essentials.Benchmarks) project and usually unit-tested.<br/>
 
 ### Text
-- [LineReader](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Streams/LineReader.cs) ([285% faster than string.Split](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/LineReaderParseBenchmark.cs))
-  allows splitting a string without creating a copy (using Span\<char\>) with any kind of separator. Useful for csv parsing.
-- [RowReader](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Streams/RowReader.cs) ([285% faster than string.Split](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/LineReaderParseBenchmark.cs)) 
-  similar to LineReader but specializes in row splitting without copy (using Span\<char\>).
+- [LineReader](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Streams/LineReader.cs) ([faster by 185% than string.Split](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/LineReaderBenchmark.cs) and [parses 25% faster than with string.Split](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/LineReaderParseBenchmark.cs))
+  allows splitting a string without creating a copy (using `Span<char>`) with any kind of separator. Useful for csv parsing.
+- [RowReader](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Streams/RowReader.cs) ([faster by 215% than string.Split](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/RowReaderBenchmark.cs)) 
+  similar to LineReader but specializes in row splitting without copy (using `Span<char>`).
 - [StreamRowReader](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Streams/StreamRowReader.cs)
     similar to RowReader but for streams with an automated buffer algorithm.
 - [ValueStringBuilder](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Text/ValueStringBuilder.cs) 
@@ -38,7 +41,7 @@ All performance-oriented classes have a benchmark at [Nucs.Essentials.Benchmark]
 
 ### Multithreading / Collections
 - [Async](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/AsyncSingleProducerSingleConsumerQueue.cs) / [SingleProducerSingleConsumerQueue\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/SingleProducerSingleConsumerQueue.cs) 
-  a high performance lockless queue for single producer and single consumer with awaitable signal for available read [outperforming System.Threading.Channels by 181%](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark.cs).
+  a high performance lockless queue for single producer and single consumer with awaitable signal for available read [faster than System.Threading.Channels by 81%](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark.cs).
 - [Async](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/AsyncManyProducerManyConsumerStack.cs) / [ManyProducerManyConsumerStack\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/ManyProducerManyConsumerStack.cs)
   a high performance lockless stack using linked-list for many producers and many consumers with awaitable signal for available read.
 - [AsyncRoundRobinProducerConsumer\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/AsyncRoundRobinProducerConsumer.cs)
@@ -64,34 +67,6 @@ All expression related classes have an overload for `Expression` and a `Delegate
   generates a `ToDictionary` method for a target type `<T>` that returns a `Dictionary<string, object>` of all properties. Supports boxing of struct/primitive values via `PooledStrongBox<T>`. Useful for destructing an object into a dictionary.
 - [DefaultValue\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Reflection/DefaultValue.cs)
   provides a method to create a default value of a `<T>`. As-well as a cached boxed value and `T` value.
-
-
-### Math
-`NdSpan<T>` is a port of [numpy](https://numpy.org/) implementing n-dimensional over a `Span<T>` as a `ref struct` allowing generic math, slicing, broadcasting, reshaping and more of any block of memory that can we wrapped in a `Span<T>`.</br>
-Objects as `<T>` is supported as all operations requiring a certain type (for example multiplication requiring `INumber<T>` and `INumberMinMax<T>`) are implemented as extension methods (rather than overriding implicit operators).</br>
-#### Supported Features
-- [x] Math operations on n-d shapes, support math between different types.
-- [x] [Broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) n-d shapes against each other.
-- [x] [Random sampling](https://numpy.org/doc/stable/reference/random/index.html)
-- [ ] [Statistics](https://numpy.org/doc/stable/reference/routines.statistics.html)
-- [ ] [Linear Algebra](https://numpy.org/doc/stable/reference/routines.linalg.html)
-- [ ] [Fourier Transforms](https://numpy.org/doc/stable/reference/routines.fft.html)
-- [ ] [Polynomials](https://numpy.org/doc/stable/reference/routines.polynomials.html)
-- [ ] [Special Functions](https://numpy.org/doc/stable/reference/routines.special.html)
-- [ ] [Random Generator](https://numpy.org/doc/stable/reference/random/generator.html)
-- [ ] [Array Creation Routines](https://numpy.org/doc/stable/reference/routines.array-creation.html)
-- [ ] [Array Manipulation Routines](https://numpy.org/doc/stable/reference/routines.array-manipulation.html)
-- [ ] [String Operations](https://numpy.org/doc/stable/reference/routines.char.html)
-- [ ] [Datetime Routines](https://numpy.org/doc/stable/reference/routines.datetime.html)
-- [ ] [Data Type Routines](https://numpy.org/doc/stable/reference/routines.dtypes.html)
-- [ ] [Logic Functions](https://numpy.org/doc/stable/reference/routines.logic.html)
-- [ ] [Masked Array Routines](https://numpy.org/doc/stable/reference/routines.ma.html)
-- [ ] [Mathematical Functions](https://numpy.org/doc/stable/reference/routines.math.html)
-- [ ] [Polynomials](https://numpy.org/doc/stable/reference/routines.polynomials.html)
-- [ ] [Set Operations](https://numpy.org/doc/stable/reference/routines.set.html)
-- [ ] [Sorting, Searching, and Counting](https://numpy.org/doc/stable/reference/routines.sort.html)
-- [ ] [Sparse Matrices](https://numpy.org/doc/stable/reference/routines.sparse.html)
-
 
 
 # <img src="https://i.imgur.com/BOExs52.png" width="25" style="margin: 5px 0px 0px 10px"/> Nucs.Optimization

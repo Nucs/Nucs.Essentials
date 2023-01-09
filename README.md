@@ -3,20 +3,102 @@
 [![NuGet](https://img.shields.io/nuget/dt/Nucs.Essentials.svg)](https://github.com/Nucs/Nucs.Essentials)
 [![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/Nucs/Essentials/blob/master/LICENSE)
 
-If you had a bunch of good generic classes, would you not place them in a nuget package?<br/>
+If you had a bunch of high performance classes, would you not place them in a nuget package?<br/>
 This library contains essential classes I use in production.<br/>
-Cloning and exploring this repository is the recommended way of learning how to use it. It is not meant for the juniors.
+Cloning and exploring this repository is the recommended way of learning how to use it.
 
 ### Installation
 ```sh
 PM> Install-Package Nucs.Essentials
 ```
+Overview
+---
+All performance-oriented classes have a benchmark at [Nucs.Essentials.Benchmark](https://github.com/Nucs/Nucs.Essentials/tree/main/benchmark/Nucs.Essentials.Benchmarks) project and usually unit-tested.<br/>
+
+### Text
+- [LineReader](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Streams/LineReader.cs) ([285% faster than string.Split](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/LineReaderParseBenchmark.cs))
+  allows splitting a string without creating a copy (using Span\<char\>) with any kind of separator. Useful for csv parsing.
+- [RowReader](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Streams/RowReader.cs) ([285% faster than string.Split](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/LineReaderParseBenchmark.cs)) 
+  similar to LineReader but specializes in row splitting without copy (using Span\<char\>).
+- [StreamRowReader](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Streams/StreamRowReader.cs)
+    similar to RowReader but for streams with an automated buffer algorithm.
+- [ValueStringBuilder](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Text/ValueStringBuilder.cs) 
+  allows building strings using pooled buffers, useful for high performance string building.
+- [ReverseLineReader](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Streams/StreamRowReader.cs)
+  for reading lines from the end of a file.
+
+### Collections
+- [RollingWindow\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/RollingWindow.cs)
+  a rolling window (list) of fixed size. When full, last one pops and new item is pushed to front, useful for statistics.
+- [StructList\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/Structs/StructList.cs) and [StructQueue\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/Structs/StructQueue.cs) 
+  are struct port of `List<T>`/`Queue<T>` with additional functionalities such as exposing internal fields and deconstructors, essentially allowing a very versatile use of them.
+  Versioning to protect against multithreaded access has been removed.
+- Reusable queues for wrapping [List\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/Structs/ReusableListQueue.cs) / [Array](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/Structs/ReusableArrayQueue.cs) / [ReadOnlySpan\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/Structs/ReusableSpanQueue.cs) 
+  allowing reuse/resetting the queue without needing to create a new instance. Also exposes functionalities such as Peak and iteration.
+
+### Multithreading / Collections
+- [Async](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/AsyncSingleProducerSingleConsumerQueue.cs) / [SingleProducerSingleConsumerQueue\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/SingleProducerSingleConsumerQueue.cs) 
+  a high performance lockless queue for single producer and single consumer with awaitable signal for available read [outperforming System.Threading.Channels by 181%](https://github.com/Nucs/Nucs.Essentials/blob/main/benchmark/Nucs.Essentials.Benchmarks/AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark.cs).
+- [Async](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/AsyncManyProducerManyConsumerStack.cs) / [ManyProducerManyConsumerStack\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/ManyProducerManyConsumerStack.cs)
+  a high performance lockless stack using linked-list for many producers and many consumers with awaitable signal for available read.
+- [AsyncRoundRobinProducerConsumer\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/AsyncRoundRobinProducerConsumer.cs)
+  a lockless round-robin channel that accepts data from multiple producers and distributes it to multiple `AsyncSingleProducerSingleConsumerQueue` consumers. This pattern allows feeding `<T>` to multiple consumers without locking.
+- [AsyncCountdownEvent](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Threading/AsyncCountdownEvent.cs) 
+  a lockless countdown event that allows awaiting for a specific number of signals. awaiting completes once 0 is reached. Counter can be incremented and decremented. Serves like a `SemaphoreSlim` that awaits for reaching 0 signals remaining.
+- [ConcurrentPriorityQueue\<TKey, TValue\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/ConcurrentPriorityQueue.cs)
+  lock based priority queue based on generic key ordering priority by a `IComparable\<TKey\>`.
+- [ConcurrentHashSet\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/ConcurrentHashSet.cs)
+    bucket-based locking (multiple locks, depending on hash of the item, better than single-lock) with Dictionary-like buckets hashset for concurrent access.
+- [ObservableConcurrentList](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Collections/ObservableConcurrentList.cs)
+    a thread-safe observable list that notifies changes using `INotifyCollectionChanged`. Useful for concurrent WPF binding. Allows transactions using `IDisposable BlockReentrancy()` that on dispose will notify changes.
+
+### Reflection / Generators / Expressions
+All expression related classes have an overload for `Expression` and a `Delegate`.
+- [DictionaryToSwitchCaseGenerator](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Reflection/DictionaryToSwitchCaseGenerator.cs)
+  creates a switch-case expression from a dictionary of `TKey` to `TValue` and a default value case. Essentially inlines a dictionary into a switch-case as a `Func<TKey, TValue>`.
+- [PreloadedPropertyGetter](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Reflection/PreloadedPropertyGetter.cs)
+  generates a getter for all properties of a type and caches it for future use. Useful for reflection-heavy code.
+- [StructToString](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Reflection/StructToString.cs)
+  generates a `ToString` method for a struct that returns a string. Used to avoid a mistake of using `object.ToString` that forces a cast from struct to object.
+- [ToDictionaryGenerator](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Reflection/ToDictionaryGenerator.cs)
+  generates a `ToDictionary` method for a target type `<T>` that returns a `Dictionary<string, object>` of all properties. Supports boxing of struct/primitive values via `PooledStrongBox<T>`. Useful for destructing an object into a dictionary.
+- [DefaultValue\<T\>](https://github.com/Nucs/Nucs.Essentials/blob/main/src/Nucs.Essentials/Reflection/DefaultValue.cs)
+  provides a method to create a default value of a `<T>`. As-well as a cached boxed value and `T` value.
+
+
+### Math
+`NdSpan<T>` is a port of [numpy](https://numpy.org/) implementing n-dimensional over a `Span<T>` as a `ref struct` allowing generic math, slicing, broadcasting, reshaping and more of any block of memory that can we wrapped in a `Span<T>`.</br>
+Objects as `<T>` is supported as all operations requiring a certain type (for example multiplication requiring `INumber<T>` and `INumberMinMax<T>`) are implemented as extension methods (rather than overriding implicit operators).</br>
+#### Supported Features
+- [x] Math operations on n-d shapes, support math between different types.
+- [x] [Broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) n-d shapes against each other.
+- [x] [Random sampling](https://numpy.org/doc/stable/reference/random/index.html)
+- [ ] [Statistics](https://numpy.org/doc/stable/reference/routines.statistics.html)
+- [ ] [Linear Algebra](https://numpy.org/doc/stable/reference/routines.linalg.html)
+- [ ] [Fourier Transforms](https://numpy.org/doc/stable/reference/routines.fft.html)
+- [ ] [Polynomials](https://numpy.org/doc/stable/reference/routines.polynomials.html)
+- [ ] [Special Functions](https://numpy.org/doc/stable/reference/routines.special.html)
+- [ ] [Random Generator](https://numpy.org/doc/stable/reference/random/generator.html)
+- [ ] [Array Creation Routines](https://numpy.org/doc/stable/reference/routines.array-creation.html)
+- [ ] [Array Manipulation Routines](https://numpy.org/doc/stable/reference/routines.array-manipulation.html)
+- [ ] [String Operations](https://numpy.org/doc/stable/reference/routines.char.html)
+- [ ] [Datetime Routines](https://numpy.org/doc/stable/reference/routines.datetime.html)
+- [ ] [Data Type Routines](https://numpy.org/doc/stable/reference/routines.dtypes.html)
+- [ ] [Logic Functions](https://numpy.org/doc/stable/reference/routines.logic.html)
+- [ ] [Masked Array Routines](https://numpy.org/doc/stable/reference/routines.ma.html)
+- [ ] [Mathematical Functions](https://numpy.org/doc/stable/reference/routines.math.html)
+- [ ] [Polynomials](https://numpy.org/doc/stable/reference/routines.polynomials.html)
+- [ ] [Set Operations](https://numpy.org/doc/stable/reference/routines.set.html)
+- [ ] [Sorting, Searching, and Counting](https://numpy.org/doc/stable/reference/routines.sort.html)
+- [ ] [Sparse Matrices](https://numpy.org/doc/stable/reference/routines.sparse.html)
+
 
 
 # <img src="https://i.imgur.com/BOExs52.png" width="25" style="margin: 5px 0px 0px 10px"/> Nucs.Optimization
 [![Nuget downloads](https://img.shields.io/nuget/vpre/Nucs.Optimization.svg)](https://www.nuget.org/packages/Nucs.Essentials/)
 [![NuGet](https://img.shields.io/nuget/dt/Nucs.Optimization.svg)](https://github.com/Nucs/Nucs.Essentials)
 [![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/Nucs/Essentials/blob/master/LICENSE)
+
 
 A .NET binding using [pythonnet](https://github.com/pythonnet/pythonnet) for [skopt (scikit-optimize)](https://scikit-optimize.github.io/) - an optimization library with support to dynamic search spaces through generic binding.<br/>
 

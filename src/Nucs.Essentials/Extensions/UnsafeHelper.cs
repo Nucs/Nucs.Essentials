@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Nucs.Extensions; 
+namespace Nucs.Extensions;
 
 internal static unsafe class UnsafeHelper {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -12,7 +12,8 @@ internal static unsafe class UnsafeHelper {
     public static bool IsNullRef(void* ptr) {
         return ptr == null;
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ref T NullRef<T>() where T : unmanaged => ref Unsafe.AsRef<T>(IntPtr.Zero.ToPointer());
+    public static ref T NullRef<T>() =>
+        ref Unsafe.AsRef<T>(null);
 }

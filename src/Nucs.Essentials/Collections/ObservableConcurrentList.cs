@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Threading;
 
 namespace Nucs.Collections {
     /// <summary>Represents a dynamic data collection that provides notifications when items get added, removed, or when the whole list is refreshed.</summary>
@@ -11,7 +12,7 @@ namespace Nucs.Collections {
     public class ObservableConcurrentList<T> : INotifyCollectionChanged, INotifyPropertyChanged, IList<T>, IReadOnlyList<T>, IList, IDisposable {
         private readonly ConcurrentList<T> _list;
 
-        
+
         private SimpleMonitor _monitor = new SimpleMonitor();
 
         public bool Remove(T item) {
@@ -22,7 +23,7 @@ namespace Nucs.Collections {
             return true;
         }
 
-        
+
         public int Count => _list.Count;
 
         /// <summary>Initializes a new instance of the <see cref="T:ObservableCollection`1" /> class.</summary>
@@ -137,10 +138,10 @@ namespace Nucs.Collections {
             }
         }
 
-        
+
         public bool IsReadOnly => _list.IsReadOnly;
 
-        
+
         public bool IsFixedSize => ((IList) _list).IsFixedSize;
 
         /// <summary>Removes the item at the specified index of the collection.</summary>
@@ -205,7 +206,7 @@ namespace Nucs.Collections {
 
         /// <summary>Disallows reentrant attempts to change this collection.</summary>
         /// <returns>An <see cref="T:System.IDisposable" /> object that can be used to dispose of the object.</returns>
-        protected IDisposable BlockReentrancy() {
+        public IDisposable BlockReentrancy() {
             _monitor.Enter();
             return (IDisposable) _monitor;
         }
@@ -239,14 +240,14 @@ namespace Nucs.Collections {
 
         [Serializable]
         private class SimpleMonitor : IDisposable {
-            private int _busyCount;
+            private volatile int _busyCount;
 
             public void Enter() {
-                ++_busyCount;
+                Interlocked.Increment(ref _busyCount);
             }
 
             public void Dispose() {
-                --_busyCount;
+                Interlocked.Decrement(ref _busyCount);
             }
 
             public bool Busy => _busyCount > 0;
@@ -271,10 +272,9 @@ namespace Nucs.Collections {
         }
 
 
-        
         public object SyncRoot => ((ICollection) _list).SyncRoot;
 
-        
+
         public bool IsSynchronized => ((ICollection) _list).IsSynchronized;
 
         #endregion

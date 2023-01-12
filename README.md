@@ -10,9 +10,7 @@ Cloning and exploring this repository is the recommended way of learning how to 
 ### Installation
 Supports `netcoreapp3.1` `net6.0` `net7.0`
 ```sh
-
 PM> Install-Package Nucs.Essentials
-
 ```
 Overview
 ---

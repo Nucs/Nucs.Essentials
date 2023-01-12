@@ -5,18 +5,19 @@ using Nucs.Collections;
 namespace Nucs.Essentials.Benchmarks;
 
 /*
-|                                                     Method |      Mean |     Error |    StdDev |    Median | Ratio | RatioSD |
-|----------------------------------------------------------- |----------:|----------:|----------:|----------:|------:|--------:|
-|                                          Channel_Unbounded | 11.305 ms | 0.2222 ms | 0.4437 ms | 11.113 ms |  1.00 |    0.00 |
-|                                            Channel_Bounded | 12.915 ms | 0.2420 ms | 0.2146 ms | 12.901 ms |  1.09 |    0.04 |
-|                     AsyncSingleProducerSingleConsumerQueue |  6.484 ms | 0.0274 ms | 0.0229 ms |  6.477 ms |  0.55 |    0.02 |
-|          AsyncSingleProducerSingleConsumerQueue_NeverEmpty |  5.949 ms | 0.0491 ms | 0.0383 ms |  5.961 ms |  0.50 |    0.01 |
-|                         AsyncManyProducerManyConsumerStack | 11.718 ms | 0.3348 ms | 0.9713 ms | 11.830 ms |  1.10 |    0.05 |
-|              AsyncManyProducerManyConsumerStack_NeverEmpty | 10.409 ms | 0.1806 ms | 0.4113 ms | 10.339 ms |  0.92 |    0.04 |
-|                              ManyProducerManyConsumerStack | 11.349 ms | 0.2087 ms | 0.1850 ms | 11.344 ms |  0.96 |    0.04 |
-|                   ManyProducerManyConsumerStack_NeverEmpty |  9.782 ms | 0.0774 ms | 0.1597 ms |  9.748 ms |  0.87 |    0.03 |
-|            SemaphoreAsyncSingleProducerSingleConsumerQueue | 13.456 ms | 0.2347 ms | 0.4048 ms | 13.309 ms |  1.19 |    0.05 |
-| SemaphoreAsyncSingleProducerSingleConsumerQueue_NeverEmpty | 12.770 ms | 0.0726 ms | 0.1432 ms | 12.747 ms |  1.13 |    0.05 |*/
+|                                                     Method |     Mean |     Error |    StdDev | Ratio | RatioSD |
+|----------------------------------------------------------- |---------:|----------:|----------:|------:|--------:|
+|                                          Channel_Unbounded | 3.747 ms | 0.1122 ms | 0.3200 ms |  1.00 |    0.00 |
+|                                            Channel_Bounded | 5.779 ms | 0.1144 ms | 0.3170 ms |  1.54 |    0.12 |
+|                     AsyncSingleProducerSingleConsumerQueue | 2.509 ms | 0.0489 ms | 0.0481 ms |  0.61 |    0.04 |
+|          AsyncSingleProducerSingleConsumerQueue_NeverEmpty | 2.290 ms | 0.0450 ms | 0.0535 ms |  0.58 |    0.05 |
+|                         AsyncManyProducerManyConsumerStack | 7.871 ms | 0.0952 ms | 0.0795 ms |  1.93 |    0.13 |
+|              AsyncManyProducerManyConsumerStack_NeverEmpty | 5.354 ms | 0.1046 ms | 0.1284 ms |  1.35 |    0.11 |
+|                              ManyProducerManyConsumerStack | 3.738 ms | 0.0737 ms | 0.1421 ms |  0.97 |    0.08 |
+|                   ManyProducerManyConsumerStack_NeverEmpty | 4.908 ms | 0.1296 ms | 0.3739 ms |  1.32 |    0.13 |
+|            SemaphoreAsyncSingleProducerSingleConsumerQueue | 5.792 ms | 0.1665 ms | 0.4830 ms |  1.55 |    0.13 |
+| SemaphoreAsyncSingleProducerSingleConsumerQueue_NeverEmpty | 6.446 ms | 0.3023 ms | 0.8819 ms |  1.73 |    0.24 |
+*/
 public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
     private Channel<object> _channelUnbounded;
     private Channel<object> _channelBounded;
@@ -25,9 +26,11 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
     private ManyProducerManyConsumerStack<object> _mpmcq;
     private AsyncSemaphoreSingleProducerSingleConsumerQueue<object> _saspscq;
 
+    private const int Iterations = 100000;
+    
     [IterationSetup]
     public void Setup() {
-        _channelBounded = Channel.CreateBounded<object>(new BoundedChannelOptions(512 * 512) { SingleReader = true, SingleWriter = true });
+        _channelBounded = Channel.CreateBounded<object>(new BoundedChannelOptions(512) { SingleReader = true, SingleWriter = true });
         _channelUnbounded = Channel.CreateUnbounded<object>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = true });
         _aspscq = new AsyncSingleProducerSingleConsumerQueue<object>(initialCapacity: 512);
         _saspscq = new AsyncSemaphoreSingleProducerSingleConsumerQueue<object>(512);
@@ -37,10 +40,10 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
 
     [Benchmark(Baseline = true)]
     public void Channel_Unbounded() {
-        var reader = _channelBounded.Reader;
+        var reader = _channelUnbounded.Reader;
         var writer = _channelUnbounded.Writer;
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             writer.TryWrite(n);
             reader.TryRead(out n);
         }
@@ -52,7 +55,7 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
         var writer = _channelBounded.Writer;
 
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             writer.TryWrite(n);
             reader.TryRead(out n);
         }
@@ -62,7 +65,7 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
     public void AsyncSingleProducerSingleConsumerQueue() {
         var ch = _aspscq;
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             ch.Enqueue(n);
             ch.TryDequeue(out n);
         }
@@ -73,7 +76,7 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
         var ch = _aspscq;
         ch.Enqueue(new object()); //by having additional item, the queue is never empty and doesnt need to signal the notifier.
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             ch.Enqueue(n);
             ch.TryDequeue(out n);
         }
@@ -83,7 +86,7 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
     public void AsyncManyProducerManyConsumerStack() {
         var ch = _ampmcq;
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             ch.Enqueue(n);
             ch.TryDequeue(out n);
         }
@@ -94,7 +97,7 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
         var ch = _ampmcq;
         ch.Enqueue(new object()); //by having additional item, the queue is never empty and doesnt need to signal the notifier.
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             ch.Enqueue(n);
             ch.TryDequeue(out n);
         }
@@ -104,7 +107,7 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
     public void ManyProducerManyConsumerStack() {
         var ch = _mpmcq;
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             ch.Enqueue(n);
             ch.TryDequeue(out n);
         }
@@ -115,7 +118,7 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
         var ch = _mpmcq;
         ch.Enqueue(new object()); //by having additional item, the queue is never empty and doesnt need to signal the notifier.
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             ch.Enqueue(n);
             ch.TryDequeue(out n);
         }
@@ -125,7 +128,7 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
     public void SemaphoreAsyncSingleProducerSingleConsumerQueue() {
         var ch = _saspscq;
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             ch.Enqueue(n);
             ch.TryDequeue(out n);
         }
@@ -136,7 +139,7 @@ public class AsyncSingleProducerSingleConsumerQueue_EnqueueDequeue_Benchmark {
         var ch = _saspscq;
         ch.Enqueue(new object()); //by having additional item, the queue is never empty and doesnt need to signal the notifier.
         object n = new object();
-        for (int i = 0; i < 512 * 512; i++) {
+        for (int i = 0; i < Iterations; i++) {
             ch.Enqueue(n);
             ch.TryDequeue(out n);
         }

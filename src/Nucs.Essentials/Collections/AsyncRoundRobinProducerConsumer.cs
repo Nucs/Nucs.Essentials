@@ -85,7 +85,7 @@ public class AsyncRoundRobinProducerConsumer<T> {
     }
 
     public AsyncSingleProducerSingleConsumerQueue<T> AddConsumer() {
-        var consumer = new AsyncSingleProducerSingleConsumerQueue<T>();
+        var consumer = new AsyncSingleProducerSingleConsumerQueue<T>(16);
         AddConsumer(consumer);
         return consumer;
     }

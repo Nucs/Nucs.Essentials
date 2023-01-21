@@ -15,6 +15,7 @@ namespace Nucs.Extensions {
         ///     The delimiter resolved during construction
         /// </summary>
         public LineDelimiter ResolvedDelimiter => _delimiter.Length == 2 ? LineDelimiter.CRLF : _delimiter[0] == '\r' ? LineDelimiter.CR : LineDelimiter.LF;
+
         public RowReader(ReadOnlyMemory<char> memory) : this(memory.Span) { }
         public RowReader(ReadOnlyMemory<char> memory, LineDelimiter delimiter) : this(memory.Span, delimiter) { }
 
@@ -101,6 +102,10 @@ namespace Nucs.Extensions {
 
         public static implicit operator RowReader(ReadOnlySpan<char> text) {
             return new RowReader(text);
+        }
+
+        public static implicit operator LineReader(RowReader text) {
+            return new LineReader(text._line);
         }
     }
 }

@@ -108,6 +108,12 @@ namespace Nucs.Extensions {
             return MemoryMarshal.CreateReadOnlySpan(ref line, nextDelimiterIndex);
         }
 
+        public ReadOnlySpan<char> NextTillEnd() {
+            var line = _line;
+            _line = default;
+            return _line;
+        }
+
         public void Skip(int delimiters, char delimiter = ',') {
             var length = _line.Length;
             if (length == 0)

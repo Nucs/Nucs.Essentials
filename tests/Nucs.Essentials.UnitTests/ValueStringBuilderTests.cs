@@ -80,5 +80,35 @@ namespace Nucs.Essentials.UnitTests {
 
             chars.Should().Be("12345123451234512345".Length);
         }
+        
+        [Fact]
+        public void AppendWithDelimiter() {
+            var bytes = "12345123451234512345";
+
+            var sb = new ValueStringBuilder(10);
+            sb.Capacity.Should().NotBe(0);
+            sb.RawChars.Length.Should().BeGreaterOrEqualTo(10);
+
+            sb.Append(',', bytes);
+            sb.Append(',', bytes);
+            sb.Append(bytes);
+
+            sb.ToString().Should().Be(",12345123451234512345,1234512345123451234512345123451234512345");
+        }
+
+        [Fact]
+        public void AppendWithDelimiter2() {
+            var bytes = "12345123451234512345";
+
+            var sb = new ValueStringBuilder(10);
+            sb.Capacity.Should().NotBe(0);
+            sb.RawChars.Length.Should().BeGreaterOrEqualTo(10);
+
+            sb.Append(',', bytes);
+            sb.Append(bytes, ',');
+            sb.Append(bytes, ',');
+
+            sb.ToString().Should().Be(",1234512345123451234512345123451234512345,12345123451234512345,");
+        }
     }
 }

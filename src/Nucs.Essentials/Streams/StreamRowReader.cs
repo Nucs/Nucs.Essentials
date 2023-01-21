@@ -125,7 +125,7 @@ namespace Nucs.Extensions {
             //handle anticipated capability to process rows-at-a-stream-read
             if (_sb.Capacity < (_averageRowLength = _averageRowLength == 0 ? (i * _bufferReadsPerStreamRead) : (_averageRowLength + i * _bufferReadsPerStreamRead) / 2)) {
                 var averageRowLen = _averageRowLength;
-                _sb.EnsureCapacity(averageRowLen);
+                _sb.EnsureTotalCapacity(averageRowLen);
                 var toReturn = _arrayToReturnToPool;
                 if (toReturn != null && averageRowLen > toReturn.Length * 2) {
                     _arrayToReturnToPool = ArrayPool<byte>.Shared.Rent((int) Math.Max(averageRowLen, 1024));

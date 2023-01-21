@@ -258,7 +258,7 @@ namespace System.Text.Tests {
             // the ArrayPool is able to return.
             var builder = new ValueStringBuilder(stackalloc char[32]);
 
-            builder.EnsureCapacity(65);
+            builder.EnsureTotalCapacity(65);
 
             Assert.Equal(128, builder.Capacity);
         }
@@ -267,7 +267,7 @@ namespace System.Text.Tests {
         public void EnsureCapacity_IfBufferTimesTwoWins() {
             var builder = new ValueStringBuilder(stackalloc char[32]);
 
-            builder.EnsureCapacity(33);
+            builder.EnsureTotalCapacity(33);
 
             Assert.Equal(64, builder.Capacity);
         }
@@ -278,7 +278,7 @@ namespace System.Text.Tests {
             // the ArrayPool is able to return.
             var builder = new ValueStringBuilder(stackalloc char[64]);
 
-            builder.EnsureCapacity(16);
+            builder.EnsureTotalCapacity(16);
 
             Assert.Equal(64, builder.Capacity);
         }

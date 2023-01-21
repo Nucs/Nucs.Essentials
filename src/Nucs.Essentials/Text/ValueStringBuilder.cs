@@ -55,6 +55,10 @@ public ref struct ValueStringBuilder {
         _length = 0;
     }
 
+    /// <summary>
+    ///     The length of characters written by now.
+    /// </summary>
+    /// <remarks>Write this property or call <see cref="AddWrittenLength"/> to report external writes to this builder.</remarks>
     public int Length {
         get => _length;
         set {
@@ -66,9 +70,34 @@ public ref struct ValueStringBuilder {
 
     public int Capacity => _chars.Length;
 
-    public void EnsureCapacity(int capacity) {
+    /// <summary>
+    ///     Makes sure there is a string of atleast <paramref name="capacity"/> can initialized
+    /// </summary>
+    /// <param name="capacity">How many chars are needed in total in this stringbuilder including what was already built</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void EnsureTotalCapacity(int capacity) {
         if (capacity > _chars.Length)
             Grow(capacity - _length);
+    }
+
+    /// <summary>
+    ///     Makes sure there is a string of atleast <paramref name="capacity"/> can initialized
+    /// </summary>
+    /// <param name="capacity">How many chars are needed in total in this stringbuilder including what was already built</param>
+    [Obsolete("Use EnsureTotalCapacity")]
+    public void EnsureCapacity(int capacity) {
+        EnsureTotalCapacity(capacity);
+    }
+
+    /// <summary>
+    ///     Out of remaining empty size, make sure there is at-least <paramref name="required"/> space
+    /// </summary>
+    /// <param name="required">The required space in chars in this builder</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void EnsureRemainderCapacity(int required) {
+        var leftover = _chars.Length - _length;
+        if (required > leftover)
+            Grow(required - leftover);
     }
 
     /// <summary>
@@ -87,7 +116,7 @@ public ref struct ValueStringBuilder {
     /// <param name="terminate">Ensures that the builder has a null char after <see cref="Length"/></param>
     public ref char GetPinnableReference(bool terminate) {
         if (terminate) {
-            EnsureCapacity(Length + 1);
+            EnsureTotalCapacity(Length + 1);
             _chars[Length] = '\0';
         }
 
@@ -101,13 +130,21 @@ public ref struct ValueStringBuilder {
         }
     }
 
+    /// <summary>
+    ///     Gets the built string so far without disposing the internal buffer.
+    /// </summary>
     public override string ToString() {
-        if (_length == 0)
+        var length = _length;
+        if (length == 0)
             return string.Empty;
 
-        return _chars.Slice(0, _length).ToString();
+        return _chars.Slice(0, length).ToString();
     }
 
+    /// <summary>
+    ///     Gets the built string and disposes internal buffers.
+    /// </summary>
+    /// <returns>The built string so far.</returns>
     public string ToStringFinalize() {
         string s = _chars.Slice(0, _length).ToString();
         Dispose();
@@ -123,7 +160,7 @@ public ref struct ValueStringBuilder {
     /// <param name="terminate">Ensures that the builder has a null char after <see cref="Length"/></param>
     public ReadOnlySpan<char> AsSpan(bool terminate) {
         if (terminate) {
-            EnsureCapacity(Length + 1);
+            EnsureTotalCapacity(Length + 1);
             _chars[Length] = '\0';
         }
 
@@ -190,9 +227,18 @@ public ref struct ValueStringBuilder {
         }
     }
 
+    /// <summary>
+    ///     Appends a character without checking if length is enough
+    /// </summary>
+    /// <param name="c"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AppendUnsafe(char c) {
+        _chars[_length++] = c;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Append(string? s) {
-        if (s == null) {
+        if (s == null || s.Length == 0) {
             return;
         }
 
@@ -283,6 +329,39 @@ public ref struct ValueStringBuilder {
         return dst;
     }
 
+    public Span<char> Append(ReadOnlySpan<char> value, char delimiter) {
+        int currentLength = _length;
+        if (currentLength > _chars.Length - value.Length - 1) {
+            Grow(value.Length + 1);
+        }
+
+        var dst = _chars.Slice(_length, value.Length);
+        value.CopyTo(dst);
+        _length += value.Length;
+        _chars[_length++] = delimiter;
+        return dst;
+    }
+
+    /// <summary>
+    ///     Appends <paramref name="delimiter"/> and then <paramref name="value"/>
+    /// </summary>
+    /// <returns>The span representing what was added</returns>
+    public void Append(char delimiter, ReadOnlySpan<char> value) {
+        int currentLength = _length;
+        if (currentLength > _chars.Length - value.Length - 1) {
+            Grow(value.Length + 1);
+        }
+
+        _chars[currentLength++] = delimiter;
+        value.CopyTo(_chars.Slice(currentLength, value.Length));
+        _length += value.Length + 1;
+    }
+
+    /// <summary>
+    ///     Appends <paramref name="length"/> and returns the target span for writing.
+    /// </summary>
+    /// <param name="length">Length of characters</param>
+    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Span<char> AppendSpan(int length) {
         int origPos = _length;
@@ -294,8 +373,28 @@ public ref struct ValueStringBuilder {
         return _chars.Slice(origPos, length);
     }
 
+    /// <summary>
+    ///     Gets the remaining buffer for writing.
+    /// </summary>
+    /// <param name="requiredChars"></param>
+    /// <returns></returns>
+    /// <remarks>Use <see cref="AddWrittenLength"/> to report the changes written.</remarks>
+    public Span<char> GetBuffer(int requiredChars) {
+        EnsureRemainderCapacity(requiredChars);
+
+        return _chars.Slice(_length);
+    }
+
+    /// <summary>
+    ///     Gets the remaining buffer for writing.
+    /// </summary>
+    /// <remarks>Use <see cref="AddWrittenLength"/> to report the changes written.</remarks>
+    public Span<char> GetBuffer() {
+        return _chars.Slice(_length);
+    }
+
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private void GrowAndAppend(char c) {
+    public void GrowAndAppend(char c) {
         Grow(1);
         Append(c);
     }
@@ -309,7 +408,7 @@ public ref struct ValueStringBuilder {
     /// Number of chars requested beyond current position.
     /// </param>
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private void Grow(int additionalCapacityBeyondPos) {
+    public void Grow(int additionalCapacityBeyondPos) {
         Debug.Assert(additionalCapacityBeyondPos > 0);
         Debug.Assert(_length > _chars.Length - additionalCapacityBeyondPos, "Grow called incorrectly, no resize is needed.");
 
@@ -355,5 +454,14 @@ public ref struct ValueStringBuilder {
         if (toReturn != null) {
             ArrayPool<char>.Shared.Return(toReturn);
         }
+    }
+
+    /// <summary>
+    ///     Writes to <see cref="Length"/> to report changes in <see cref="GetBuffer(int)"/>
+    /// </summary>
+    /// <param name="chars"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddWrittenLength(int chars) {
+        _length += chars;
     }
 }

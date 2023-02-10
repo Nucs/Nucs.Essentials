@@ -1,7 +1,6 @@
 # <img src="https://i.imgur.com/BOExs52.png" width="25" style="margin: 5px 0px 0px 10px"/> Nucs.Essentials
-[![Nuget downloads](https://img.shields.io/nuget/vpre/Nucs.Essentials.svg)](https://www.nuget.org/packages/Nucs.Essentials/)
-[![NuGet](https://img.shields.io/nuget/dt/Nucs.Essentials.svg)](https://github.com/Nucs/Nucs.Essentials)
-[![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/Nucs/Essentials/blob/master/LICENSE)
+[![Nuget downloads](https://img.shields.io/nuget/vpre/log4net-loggly-async.svg)](https://www.nuget.org/packages/log4net-loggly-async/)
+[![NuGet](https://img.shields.io/nuget/dt/log4net-loggly-async.svg)](https://github.com/Nucs/log4net-loggly-async)
 
 If you had a bunch of high performance classes, would you not place them in a nuget package?<br/>
 This library contains essential classes I use in production.<br/>

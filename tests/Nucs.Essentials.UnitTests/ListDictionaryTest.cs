@@ -8,8 +8,6 @@ using Xunit.Abstractions;
 
 namespace Nucs.Essentials.UnitTests;
 
-//Keys: Ctrl + E : check what func requires, Ctrl + W : select word, Ctrl + Shift + W : unselect word
-//TODO: Read about generics, warning: its a deepdive so just get the general idea and dive back to tests
 public class ListDictionaryTest
 {
     [Fact]

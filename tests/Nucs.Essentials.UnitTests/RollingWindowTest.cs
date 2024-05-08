@@ -11,7 +11,6 @@ namespace Nucs.Essentials.UnitTests;
 
 public class RollingWindowTest
 {
-    //TODO: try to do more tests with args cuz its awseome
     [Theory]
     [InlineData(1, 2, 0)]
     [InlineData(2, 2, 1)]

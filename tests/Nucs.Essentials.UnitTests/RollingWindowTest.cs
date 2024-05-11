@@ -18,7 +18,7 @@ public class RollingWindowTest
     [InlineData(1, 3, 0)]
     [InlineData(3, 3, 2)]
     [InlineData(4, 3, 3)]
-    public void MySpecialTestNewest(int numberOfPushes, int windowSize, int newestExpectedToBe)
+    public void NewestTestLoopPush(int numberOfPushes, int windowSize, int newestExpectedToBe)
     {
         var window = new RollingWindow<int>(windowSize);
         for (int i = 0; i < numberOfPushes; i++)
@@ -49,7 +49,7 @@ public class RollingWindowTest
         latest.Should().Be(1);
         
         //When empty
-        var ex = Assert.Throws<DivideByZeroException>(() => {;
+        Assert.Throws<DivideByZeroException>(() => {;
             window.Reset();
             latest = window.Latest;
         });
@@ -68,14 +68,14 @@ public class RollingWindowTest
     [InlineData(-1)]
     [InlineData(0)]
     [InlineData(3)]
-    public void NewestTest(int number)
+    public void NewestTestSinglePush(int number)
     {
         //Arrange
         var window = new RollingWindow<int>(3);
         
         //When Empty
-        var ex = Assert.Throws<DivideByZeroException>(() => {;
-            var newest = window.Newest;
+        Assert.Throws<DivideByZeroException>(() => {;
+            _ = window.Newest;
         });
         //Act
         window.Push(number);
@@ -92,7 +92,7 @@ public class RollingWindowTest
         //When Nothing was Removed
         window.Push(1);
         Assert.Throws<InvalidOperationException>(() => {;
-            var exception = window.MostRecentlyRemoved;
+            _ = window.MostRecentlyRemoved;
         });
         //Act
         window.Push(2);
@@ -106,7 +106,7 @@ public class RollingWindowTest
         window.Push(10);
         //When Nothing was Removed
         Assert.Throws<InvalidOperationException>(() => {;
-            var exception = window.MostRecentlyRemoved;
+            _ = window.MostRecentlyRemoved;
         });
         //Act
         window.Push(20);
